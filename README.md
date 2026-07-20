@@ -10,7 +10,7 @@ ReportFlow es un sistema desarrollado de forma colaborativa como parte de un pro
 - Integrante 2
 - Integrante 3
 - Integrante 4
-- Integrante 5
+- Santiago Comes
 - Victor Hugo Peinado
 
 ## Tecnologías
