@@ -6,11 +6,11 @@ ReportFlow es un sistema desarrollado de forma colaborativa como parte de un pro
 
 ## Equipo de desarrollo
 
-- Integrante 1
-- Integrante 2
-- Integrante 3
-- Integrante 4
+- Daiana Osorio
+- Florencia Navarro
+- Luka Garro
 - Santiago Comes
+- Sebastián Gutierrez
 - Victor Hugo Peinado
 
 ## Tecnologías
