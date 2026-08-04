@@ -5,6 +5,12 @@
 @section('contenido')
 <div x-data="{ modalAbierto: false }">
 
+    @if(session('status'))
+        <div class="mb-4 bg-green-100 border border-green-300 text-green-700 px-4 py-3 rounded-lg text-sm">
+            {{ session('status') }}
+        </div>
+    @endif
+
     <div class="flex justify-between items-center mb-6">
         <p class="text-sm text-gray-500">Historial de estudios subidos y derivados a especialidad.</p>
         <button @click="modalAbierto = true"
