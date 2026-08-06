@@ -1,212 +1,144 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hospital Universitario - Portal Clínico</title>
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Iconos de Bootstrap -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+@extends('layouts.app')
 
-    <style>
-        body {
-            background-color: #f4f6f9;
-        }
+@section('titulo', 'Worklist - Médico')
 
-        /* Navbar superior */
-        .top-navbar {
-            height: 60px;
-            background-color: #1d3557;
-            color: white;
-        }
+@section('contenido')
+<div class="space-y-6">
 
-        /* Sidebar lateral */
-        .sidebar {
-            width: 240px;
-            min-height: calc(100vh - 60px);
-            background-color: #ffffff;
-            border-right: 1px solid #e9ecef;
-        }
-
-        .sidebar .nav-link {
-            color: #495057;
-            font-weight: 500;
-            padding: 10px 15px;
-            border-radius: 6px;
-            margin-bottom: 4px;
-        }
-
-        .sidebar .nav-link:hover {
-            background-color: #f8f9fa;
-            color: #1d3557;
-        }
-
-        .sidebar .nav-link.active {
-            background-color: #e8f0fe;
-            color: #1a73e8;
-            font-weight: 600;
-        }
-
-        /* Contenedor del contenido principal */
-        .main-content {
-            flex-grow: 1;
-            padding: 25px;
-        }
-    </style>
-</head>
-<body>
-
-    <!-- NAVBAR SUPERIOR -->
-    <nav class="navbar top-navbar px-3 shadow-sm">
-        <div class="container-fluid p-0 d-flex justify-content-between align-items-center">
-            <!-- Logo / Nombre de la Institución -->
-            <a class="navbar-brand text-white fw-bold d-flex align-items-center gap-2 m-0" href="#">
-                <i class="bi bi-hospital fs-4"></i>
-                HOSPITAL UNIVERSITARIO
-            </a>
-
-            <!-- Búsqueda Central -->
-            <div class="w-50">
-                <input type="search" class="form-control form-control-sm rounded-pill px-3" placeholder="Buscar paciente o ID estudio...">
-            </div>
-
-            <!-- Datos del Usuario / Perfil -->
-            <div class="d-flex align-items-center text-white gap-2">
-                <div class="text-end d-none d-md-block" style="line-height: 1.2;">
-                    <small class="d-block fw-bold mb-0">García</small>
-                    <small class="text-white-50" style="font-size: 0.75rem;">Dr. Cardiología</small>
-                </div>
-                <div class="rounded-circle bg-light text-dark d-flex align-items-center justify-content-center fw-bold" style="width: 38px; height: 38px;">
-                    G
-                </div>
+    {{-- Notificación de éxito despachada por el controlador --}}
+    @if(session('success'))
+        <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-lg text-sm flex items-center justify-between shadow-sm">
+            <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                <span>{{ session('success') }}</span>
             </div>
         </div>
-    </nav>
+    @endif
 
-    <!-- CONTENEDOR PRINCIPAL (SIDEBAR + TU TABLA) -->
-    <div class="d-flex">
-        
-        <!-- SIDEBAR LATERAL -->
-        <aside class="sidebar p-3 shadow-sm">
-            <h6 class="text-uppercase text-muted fw-bold mb-3 px-2" style="font-size: 0.75rem;">Cardiología</h6>
-            
-            <ul class="nav nav-pills flex-column">
-                <li class="nav-item">
-                    <a href="{{ route('medico.estudios.index') }}" class="nav-link {{ request()->routeIs('medico.estudios.index') ? 'active' : '' }}">
-                        <i class="bi bi-file-earmark-text me-2"></i> Worklist (Pendientes)
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="#" class="nav-link">
-                        <i class="bi bi-folder2-open me-2"></i> Mis Informes
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="#" class="nav-link">
-                        <i class="bi bi-graph-up me-2"></i> Mi Rendimiento
-                    </a>
-                </li>
-                <li class="nav-item mt-3">
-                    <a href="#" class="nav-link text-danger">
-                        <i class="bi bi-trash me-2"></i> Papelera
-                    </a>
-                </li>
-            </ul>
-        </aside>
-
-        <!-- SECCIÓN DE CONTENIDO (TU TABLA Y MODALES) -->
-        <main class="main-content">
-            <div class="container-fluid p-0">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body">
-                        <h4 class="fw-bold mb-4">Worklist de Estudios Pendientes</h4>
-
-                        <!-- Tabla de Estudios -->
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>ID Estudio</th>
-                                        <th>Paciente</th>
-                                        <th>Tipo de Estudio</th>
-                                        <th>Fecha/Hora</th>
-                                        <th>Técnico</th>
-                                        <th>Estado</th>
-                                        <th>Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($estudios as $estudio)
-                                    <tr>
-                                        <td>{{ $estudio->id }}</td>
-                                        <td>{{ $estudio->paciente }}</td>
-                                        <td>{{ $estudio->tipo_estudio }}</td>
-                                        <td>{{ $estudio->fecha }}</td>
-                                        <td>{{ $estudio->tecnico }}</td>
-                                        <td>
-                                            <span class="badge bg-info text-dark">{{ $estudio->estado }}</span>
-                                        </td>
-                                        <td>
-                                            <!-- Botón que dispara el modal del estudio específico -->
-                                            <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalInformar-{{ $loop->index }}">
-                                                Informar
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Modales de Informe -->
-            @foreach($estudios as $estudio)
-            <div class="modal fade" id="modalInformar-{{ $loop->index }}" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog modal-lg modal-dialog-centered">
-                    <div class="modal-content">
-                        <div class="modal-header border-0 pb-0">
-                            <h5 class="modal-title fw-bold">Estudio: {{ $estudio->tipo_estudio }}</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        
-                        <form action="{{ route('medico.estudios.informar', $estudio->id) }}" method="POST">
-                            @csrf
-                            <div class="modal-body">
-                                <!-- Cabecera de datos del paciente -->
-                                <div class="bg-light p-3 rounded mb-3">
-                                    <p class="mb-1"><strong>Paciente:</strong> {{ $estudio->paciente }}</p>
-                                    <p class="mb-1"><strong>Edad:</strong> {{ $estudio->edad ?? 'N/A' }} años</p>
-                                    <p class="mb-1"><strong>Fecha:</strong> {{ $estudio->fecha }}</p>
-                                    <p class="mb-0"><strong>Técnico:</strong> {{ $estudio->tecnico }}</p>
-                                </div>
-
-                                <!-- Formulario / Campo del Informe -->
-                                <div class="mb-3">
-                                    <label for="informe-{{ $loop->index }}" class="form-label fw-bold">INFORME {{ strtoupper($estudio->tipo_estudio) }}</label>
-                                    <textarea class="form-control" id="informe-{{ $loop->index }}" name="informe" rows="8" required placeholder="Escriba el resultado y la conclusión del estudio aquí..."></textarea>
-                                </div>
-                            </div>
-
-                            <!-- Botones de Acción -->
-                            <div class="modal-footer d-flex justify-content-between border-0">
-                                <button type="button" class="btn btn-warning text-white fw-bold">Rehacer</button>
-                                <div>
-                                    <button type="button" class="btn btn-danger me-2" data-bs-dismiss="modal">Cancelar</button>
-                                    <button type="submit" class="btn btn-success fw-bold">Guardar y firmar</button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-            @endforeach
-        </main>
+    {{-- Encabezado de la Sección --}}
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+            <h2 class="text-xl font-bold text-slate-800 tracking-tight">Worklist de Estudios Pendientes</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Gestión e informe médico de estudios cargados.</p>
+        </div>
     </div>
 
-    <!-- Bootstrap 5 JS Bundle -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+    {{-- Tabla de Estudios estilo UI Médica --}}
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200/80 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-50/70 border-b border-slate-200/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                        <th class="px-4 py-3.5">ID ESTUDIO</th>
+                        <th class="px-4 py-3.5">PACIENTE</th>
+                        <th class="px-4 py-3.5">TIPO DE ESTUDIO</th>
+                        <th class="px-4 py-3.5">FECHA/HORA</th>
+                        <th class="px-4 py-3.5">TÉCNICO</th>
+                        <th class="px-4 py-3.5">ESTADO</th>
+                        <th class="px-4 py-3.5 text-end">ACCIONES</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-xs text-slate-600">
+                    @forelse ($estudios as $estudio)
+                        <tr class="hover:bg-slate-50/50 transition-colors" x-data="{ modalAbierto: false }">
+                            <td class="px-4 py-3.5 font-mono text-[11px] text-slate-400">#{{ $estudio->id }}</td>
+                            <td class="px-4 py-3.5 font-bold text-slate-900">{{ $estudio->paciente }}</td>
+                            <td class="px-4 py-3.5 text-slate-700">{{ $estudio->tipo_estudio }}</td>
+                            <td class="px-4 py-3.5 text-slate-500">{{ $estudio->fecha }}</td>
+                            <td class="px-4 py-3.5 text-slate-600">{{ $estudio->tecnico }}</td>
+                            <td class="px-4 py-3.5">
+                                @if($estudio->estado === 'Nuevo')
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold bg-cyan-100 text-cyan-800 border border-cyan-200">
+                                        {{ $estudio->estado }}
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                                        {{ $estudio->estado }}
+                                    </span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-3.5 text-end">
+                                <button @click="modalAbierto = true"
+                                        class="bg-red-600 hover:bg-red-700 text-white px-5 py-1.5 rounded-full text-xs font-semibold tracking-wide shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1">
+                                    Informar
+                                </button>
+
+                                {{-- Modal para Redactar/Firmar Informe --}}
+                                <template x-teleport="body">
+                                    <div x-show="modalAbierto" 
+                                         x-cloak
+                                         x-transition:enter="transition ease-out duration-200"
+                                         x-transition:enter-start="opacity-0"
+                                         x-transition:enter-end="opacity-100"
+                                         x-transition:leave="transition ease-in duration-150"
+                                         x-transition:leave-start="opacity-100"
+                                         x-transition:leave-end="opacity-0"
+                                         class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+                                        
+                                        <div @click.outside="modalAbierto = false"
+                                             class="bg-white rounded-xl shadow-2xl w-full max-w-xl overflow-hidden border border-slate-100 my-8 text-start">
+
+                                            <!-- Cabecera estilo UI médica -->
+                                            <div class="bg-[#1c3452] text-white px-5 py-4 flex justify-between items-center">
+                                                <h3 class="font-bold text-sm tracking-wide">Estudio: {{ $estudio->tipo_estudio }}</h3>
+                                                <button @click="modalAbierto = false" class="text-slate-300 hover:text-white transition-colors text-lg leading-none">&times;</button>
+                                            </div>
+
+                                            <form method="POST" action="{{ route('medico.estudios.informar', $estudio->id) }}" class="p-6 space-y-4">
+                                                @csrf
+
+                                                <!-- Ficha resumida del paciente -->
+                                                <div class="bg-slate-50 p-3.5 rounded-lg border border-slate-200/80 text-xs grid grid-cols-2 gap-2 text-slate-600">
+                                                    <div><strong>Paciente:</strong> <span class="text-slate-900 font-semibold">{{ $estudio->paciente }}</span></div>
+                                                    <div><strong>Edad:</strong> <span class="text-slate-900">{{ $estudio->edad }} años</span></div>
+                                                    <div><strong>Fecha:</strong> <span class="text-slate-900">{{ $estudio->fecha }}</span></div>
+                                                    <div><strong>Técnico:</strong> <span class="text-slate-900">{{ $estudio->tecnico }}</span></div>
+                                                </div>
+
+                                                <div>
+                                                    <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                                                        Informe {{ strtoupper($estudio->tipo_estudio) }}
+                                                    </label>
+                                                    <textarea name="informe" rows="6" required 
+                                                              placeholder="Escriba el resultado, observaciones y conclusión del estudio aquí..."
+                                                              class="w-full border border-slate-300 rounded-lg p-3 text-xs text-slate-800 focus:ring-2 focus:ring-[#1c3452]/20 focus:border-[#1c3452] focus:outline-none transition-all"></textarea>
+                                                </div>
+
+                                                <div class="flex items-center justify-between pt-3 border-t border-slate-100">
+                                                    <button type="button" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg text-xs font-bold transition-all shadow-sm">
+                                                        Rehacer
+                                                    </button>
+
+                                                    <div class="flex gap-2">
+                                                        <button type="button" @click="modalAbierto = false"
+                                                                class="px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors">
+                                                            Cancelar
+                                                        </button>
+                                                        <button type="submit"
+                                                                class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-lg text-xs font-bold shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-1">
+                                                            Guardar y firmar
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </template>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="7" class="px-4 py-12 text-center text-slate-400">
+                                <div class="flex flex-col items-center justify-center gap-2">
+                                    <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                    <span>No hay estudios registrados en el sistema.</span>
+                                </div>
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+@endsection
