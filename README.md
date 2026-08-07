@@ -6,12 +6,12 @@ ReportFlow es un sistema desarrollado de forma colaborativa como parte de un pro
 
 ## Equipo de desarrollo
 
-- [Daiana Osorio](www.linkedin.com/in/daiana-osorio)
-- [Florencia Navarro](www.linkedin.com/in/florencia-mag-navarro)
-- [Luka Garro](www.linkedin.com/in/luka-garro)
-- [Santiago Comes](www.linkedin.com/in/santiago-comes)
-- [Sebastián Gutierrez](https://github.com/MSebastianGutierrez)
-- [Victor Hugo Peinado](www.linkedin.com/in/victor-peinado)
+- [Daiana Osorio]((https://)www.linkedin.com/in/daiana-osorio)
+- [Florencia Navarro](https://www.linkedin.com/in/florencia-mag-navarro)
+- [Luka Garro](https://www.linkedin.com/in/luka-garro)
+- [Santiago Comes](https://www.linkedin.com/in/santiago-comes)
+- [Sebastián Gutierrez](https://https://github.com/MSebastianGutierrez)
+- [Victor Hugo Peinado](https://www.linkedin.com/in/victor-peinado)
 
 ## Tecnologías
 
