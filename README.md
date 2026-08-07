@@ -9,7 +9,7 @@ ReportFlow es un sistema desarrollado de forma colaborativa como parte de un pro
 - Daiana Osorio
 - Florencia Navarro
 - Luka Garro
-- Santiago Comes
+- Santiago Comes (www.linkedin.com/in/santiago-comes)
 - Sebastián Gutierrez
 - Victor Hugo Peinado
 
