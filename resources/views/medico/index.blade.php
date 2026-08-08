@@ -40,30 +40,24 @@
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-xs text-slate-600">
                     @forelse ($estudios as $estudio)
-                        <tr class="hover:bg-slate-50/50 transition-colors" x-data="{ modalAbierto: false }">
+                        <tr class="hover:bg-slate-50/50 transition-colors" x-data="{ modalAbierto: false, mostrarRechazo: false }">
                             <td class="px-4 py-3.5 font-mono text-[11px] text-slate-400">#{{ $estudio->id }}</td>
-                            <td class="px-4 py-3.5 font-bold text-slate-900">{{ $estudio->paciente }}</td>
-                            <td class="px-4 py-3.5 text-slate-700">{{ $estudio->tipo_estudio }}</td>
-                            <td class="px-4 py-3.5 text-slate-500">{{ $estudio->fecha }}</td>
-                            <td class="px-4 py-3.5 text-slate-600">{{ $estudio->tecnico }}</td>
+                            <td class="px-4 py-3.5 font-bold text-slate-900">{{ $estudio->paciente_nombre }}</td>
+                            <td class="px-4 py-3.5 text-slate-700">{{ $estudio->tipoEstudio->nombre ?? 'Estudio' }}</td>
+                            <td class="px-4 py-3.5 text-slate-500">{{ $estudio->fecha_estudio->format('d/m/Y - H:i') }}</td>
+                            <td class="px-4 py-3.5 text-slate-600">{{ $estudio->tecnico_nombre }}</td>
                             <td class="px-4 py-3.5">
-                                @if($estudio->estado === 'Nuevo')
-                                    <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold bg-cyan-100 text-cyan-800 border border-cyan-200">
-                                        {{ $estudio->estado }}
-                                    </span>
-                                @else
-                                    <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
-                                        {{ $estudio->estado }}
-                                    </span>
-                                @endif
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold border {{ $estudio->estado->badgeClasses() }}">
+                                    {{ $estudio->estado->label() }}
+                                </span>
                             </td>
                             <td class="px-4 py-3.5 text-end">
-                                <button @click="modalAbierto = true"
+                                <button @click="modalAbierto = true; mostrarRechazo = false"
                                         class="bg-red-600 hover:bg-red-700 text-white px-5 py-1.5 rounded-full text-xs font-semibold tracking-wide shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1">
                                     Informar
                                 </button>
 
-                                {{-- Modal para Redactar/Firmar Informe --}}
+                                {{-- Modal para Redactar/Firmar Informe, o Rechazar --}}
                                 <template x-teleport="body">
                                     <div x-show="modalAbierto" 
                                          x-cloak
@@ -78,49 +72,89 @@
                                         <div @click.outside="modalAbierto = false"
                                              class="bg-white rounded-xl shadow-2xl w-full max-w-xl overflow-hidden border border-slate-100 my-8 text-start">
 
-                                            <!-- Cabecera estilo UI médica -->
-                                            <div class="bg-[#1c3452] text-white px-5 py-4 flex justify-between items-center">
-                                                <h3 class="font-bold text-sm tracking-wide">Estudio: {{ $estudio->tipo_estudio }}</h3>
-                                                <button @click="modalAbierto = false" class="text-slate-300 hover:text-white transition-colors text-lg leading-none">&times;</button>
+                                            {{-- Vista 1: redactar y firmar el informe --}}
+                                            <div x-show="!mostrarRechazo">
+                                                <div class="bg-[#1c3452] text-white px-5 py-4 flex justify-between items-center">
+                                                    <h3 class="font-bold text-sm tracking-wide">Estudio: {{ $estudio->tipoEstudio->nombre ?? 'Estudio' }}</h3>
+                                                    <button @click="modalAbierto = false" class="text-slate-300 hover:text-white transition-colors text-lg leading-none">&times;</button>
+                                                </div>
+
+                                                <form method="POST" action="{{ route('medico.estudios.informar', $estudio->id) }}" class="p-6 space-y-4">
+                                                    @csrf
+
+                                                    <!-- Ficha resumida del paciente -->
+                                                    <div class="bg-slate-50 p-3.5 rounded-lg border border-slate-200/80 text-xs grid grid-cols-2 gap-2 text-slate-600">
+                                                        <div><strong>Paciente:</strong> <span class="text-slate-900 font-semibold">{{ $estudio->paciente_nombre }}</span></div>
+                                                        <div><strong>Edad:</strong> <span class="text-slate-900">{{ $estudio->paciente_edad }} años</span></div>
+                                                        <div><strong>Fecha:</strong> <span class="text-slate-900">{{ $estudio->fecha_estudio->format('d/m/Y - H:i') }}</span></div>
+                                                        <div><strong>Técnico:</strong> <span class="text-slate-900">{{ $estudio->tecnico_nombre }}</span></div>
+                                                    </div>
+
+                                                    <div>
+                                                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                                                            Informe {{ strtoupper($estudio->tipoEstudio->nombre ?? '') }}
+                                                        </label>
+                                                        <textarea name="informe" rows="6" required 
+                                                                  placeholder="Escriba el resultado, observaciones y conclusión del estudio aquí..."
+                                                                  class="w-full border border-slate-300 rounded-lg p-3 text-xs text-slate-800 focus:ring-2 focus:ring-[#1c3452]/20 focus:border-[#1c3452] focus:outline-none transition-all"></textarea>
+                                                    </div>
+
+                                                    <div class="flex items-center justify-between pt-3 border-t border-slate-100">
+                                                        <button type="button" @click="mostrarRechazo = true"
+                                                                class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg text-xs font-bold transition-all shadow-sm">
+                                                            Rehacer
+                                                        </button>
+
+                                                        <div class="flex gap-2">
+                                                            <button type="button" @click="modalAbierto = false"
+                                                                    class="px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors">
+                                                                Cancelar
+                                                            </button>
+                                                            <button type="submit"
+                                                                    class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-lg text-xs font-bold shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-1">
+                                                                Guardar y firmar
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </form>
                                             </div>
 
-                                            <form method="POST" action="{{ route('medico.estudios.informar', $estudio->id) }}" class="p-6 space-y-4">
-                                                @csrf
-
-                                                <!-- Ficha resumida del paciente -->
-                                                <div class="bg-slate-50 p-3.5 rounded-lg border border-slate-200/80 text-xs grid grid-cols-2 gap-2 text-slate-600">
-                                                    <div><strong>Paciente:</strong> <span class="text-slate-900 font-semibold">{{ $estudio->paciente }}</span></div>
-                                                    <div><strong>Edad:</strong> <span class="text-slate-900">{{ $estudio->edad }} años</span></div>
-                                                    <div><strong>Fecha:</strong> <span class="text-slate-900">{{ $estudio->fecha }}</span></div>
-                                                    <div><strong>Técnico:</strong> <span class="text-slate-900">{{ $estudio->tecnico }}</span></div>
+                                            {{-- Vista 2: motivo de rechazo (Rehacer) --}}
+                                            <div x-show="mostrarRechazo">
+                                                <div class="bg-amber-600 text-white px-5 py-4 flex justify-between items-center">
+                                                    <h3 class="font-bold text-sm tracking-wide">Devolver estudio al técnico</h3>
+                                                    <button @click="modalAbierto = false" class="text-white/80 hover:text-white transition-colors text-lg leading-none">&times;</button>
                                                 </div>
 
-                                                <div>
-                                                    <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
-                                                        Informe {{ strtoupper($estudio->tipo_estudio) }}
-                                                    </label>
-                                                    <textarea name="informe" rows="6" required 
-                                                              placeholder="Escriba el resultado, observaciones y conclusión del estudio aquí..."
-                                                              class="w-full border border-slate-300 rounded-lg p-3 text-xs text-slate-800 focus:ring-2 focus:ring-[#1c3452]/20 focus:border-[#1c3452] focus:outline-none transition-all"></textarea>
-                                                </div>
+                                                <form method="POST" action="{{ route('medico.estudios.rechazar', $estudio->id) }}" class="p-6 space-y-4">
+                                                    @csrf
 
-                                                <div class="flex items-center justify-between pt-3 border-t border-slate-100">
-                                                    <button type="button" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg text-xs font-bold transition-all shadow-sm">
-                                                        Rehacer
-                                                    </button>
+                                                    <div class="bg-amber-50 border border-amber-200 text-amber-800 p-3 rounded-lg text-xs">
+                                                        Este estudio va a volver al técnico <strong>{{ $estudio->tecnico_nombre }}</strong> con estado
+                                                        <strong>"Rechazado - Rehacer"</strong>. Explicá qué hay que corregir para que pueda solucionarlo.
+                                                    </div>
 
-                                                    <div class="flex gap-2">
-                                                        <button type="button" @click="modalAbierto = false"
+                                                    <div>
+                                                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                                                            Motivo del rechazo
+                                                        </label>
+                                                        <textarea name="motivo_rechazo" rows="5" required minlength="5"
+                                                                  placeholder="Ej: la placa está fuera de foco, hay que repetir la toma..."
+                                                                  class="w-full border border-slate-300 rounded-lg p-3 text-xs text-slate-800 focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 focus:outline-none transition-all"></textarea>
+                                                    </div>
+
+                                                    <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                                                        <button type="button" @click="mostrarRechazo = false"
                                                                 class="px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors">
-                                                            Cancelar
+                                                            Volver
                                                         </button>
                                                         <button type="submit"
-                                                                class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-lg text-xs font-bold shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-1">
-                                                            Guardar y firmar
+                                                                class="bg-amber-600 hover:bg-amber-700 text-white px-5 py-2 rounded-lg text-xs font-bold shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-1">
+                                                            Confirmar rechazo
                                                         </button>
                                                     </div>
-                                                </div>
-                                            </form>
+                                                </form>
+                                            </div>
                                         </div>
                                     </div>
                                 </template>

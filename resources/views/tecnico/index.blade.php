@@ -5,12 +5,6 @@
 @section('contenido')
 <div x-data="{ modalAbierto: false }">
 
-    @if(session('status'))
-        <div class="mb-4 bg-green-100 border border-green-300 text-green-700 px-4 py-3 rounded-lg text-sm">
-            {{ session('status') }}
-        </div>
-    @endif
-
     <div class="flex justify-between items-center mb-6">
         <p class="text-sm text-gray-500">Historial de estudios subidos y derivados a especialidad.</p>
         <button @click="modalAbierto = true"
@@ -32,7 +26,7 @@
             </thead>
             <tbody class="divide-y divide-gray-100">
                 @forelse ($estudios as $estudio)
-                    <tr class="text-sm">
+                    <tr class="text-sm" x-data="{ verMotivo: false }">
                         <td class="px-4 py-3 font-bold text-brandPrimario">{{ $estudio->paciente_nombre }}</td>
                         <td class="px-4 py-3 font-mono text-xs">{{ $estudio->paciente_dni }}</td>
                         <td class="px-4 py-3">{{ $estudio->tipoEstudio->nombre }}</td>
@@ -41,6 +35,17 @@
                             <span class="px-2 py-0.5 rounded text-[10px] font-bold border {{ $estudio->estado->badgeClasses() }}">
                                 {{ $estudio->estado->label() }}
                             </span>
+
+                            @if ($estudio->estado === \App\Enums\EstadoEstudio::Rechazado && $estudio->motivo_rechazo)
+                                <button @click="verMotivo = !verMotivo" type="button"
+                                        class="block mt-1 text-[10px] text-red-600 font-semibold hover:underline">
+                                    Ver motivo
+                                </button>
+                                <div x-show="verMotivo" x-cloak
+                                     class="mt-1 max-w-xs bg-red-50 border border-red-200 text-red-700 text-[11px] rounded-lg p-2">
+                                    {{ $estudio->motivo_rechazo }}
+                                </div>
+                            @endif
                         </td>
                     </tr>
                 @empty

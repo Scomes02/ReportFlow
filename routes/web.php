@@ -3,7 +3,6 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Rrhh\RrhhController;
-use App\Http\Controllers\MedicoController;
 
 
 // ============================================
@@ -28,16 +27,19 @@ Route::middleware(['auth'])->group(function () {
     // TÉCNICO
     Route::prefix('tecnico')
         ->name('tecnico.')
+        ->middleware('role:tecnico')
         ->group(base_path('routes/tecnico.php'));
 
     // MÉDICO 
     Route::prefix('medico')
         ->name('medico.')
+        ->middleware('role:medico')
         ->group(base_path('routes/medico.php'));
 
     // RRHH
     Route::prefix('rrhh')
         ->name('rrhh.')
+        ->middleware('role:rrhh')
         ->group(base_path('routes/rrhh.php'));
 });
 
