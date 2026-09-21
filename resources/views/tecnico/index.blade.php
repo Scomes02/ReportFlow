@@ -94,6 +94,22 @@
                     </div>
                 </div>
 
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Teléfono (opcional)</label>
+                        <input type="text" name="paciente_telefono" placeholder="261 555-1234"
+                               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-brandSecundario focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Email (opcional)</label>
+                        <input type="email" name="paciente_email" placeholder="paciente@email.com"
+                               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-brandSecundario focus:outline-none">
+                    </div>
+                </div>
+                <p class="text-[11px] text-gray-400 -mt-2">
+                    Se usan para que Call Center pueda avisarle al paciente cuando el informe esté listo.
+                </p>
+
                 <div>
                     <label class="block text-xs font-bold text-gray-600 mb-1">Especialidad</label>
                     <select name="especialidad_id" required

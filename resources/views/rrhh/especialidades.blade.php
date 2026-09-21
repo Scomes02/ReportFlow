@@ -7,7 +7,7 @@
     <div class="flex justify-between items-center">
         <div>
             <h3 class="text-xl font-bold text-gray-800">Carpetas de Especialidades</h3>
-            <p class="text-xs text-gray-500">Audita y liquida las prestaciones de los médicos</p>
+            <p class="text-xs text-gray-500">Auditá cuántos informes firmó cada médico</p>
         </div>
     </div>
 
@@ -61,7 +61,7 @@
                     <i class="fas {{ $estilo['icon'] }} text-5xl"></i>
                 </span>
                 <h2 class="text-xl font-black text-gray-800 uppercase mb-1 text-center">{{ $esp->nombre }}</h2>
-                <p class="text-xs text-gray-500 font-medium mb-3">Auditoría y Liquidación</p>
+                <p class="text-xs text-gray-500 font-medium mb-3">Auditoría de Informes</p>
                 <span class="{{ $estilo['badge'] }} text-xs font-bold px-3 py-1 rounded-full border">
                     {{ $esp->estudios_informados_count ?? 0 }} Informes
                 </span>

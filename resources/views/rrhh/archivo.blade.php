@@ -7,17 +7,17 @@
     <div class="flex justify-between items-center">
         <div>
             <h3 class="text-xl font-bold text-gray-800">Archivo de Informes</h3>
-            <p class="text-xs text-gray-500">Selecciona un período para ver los informes</p>
+            <p class="text-xs text-gray-500">Seleccioná un período para ver los informes</p>
         </div>
     </div>
 
     <!-- Carpetas por mes -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
         @foreach($meses ?? [] as $mes)
-        <a href="{{ route('rrhh.archivo.mes', $mes) }}" 
-           class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 text-center hover:shadow-lg transition {{ $mes === '07/2026' ? 'border-t-4 border-orange-500' : '' }}">
+        <a href="{{ route('rrhh.archivo.mes', $mes) }}"
+           class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 text-center hover:shadow-lg transition {{ $mes === now()->format('Y-m') ? 'border-t-4 border-orange-500' : '' }}">
             <i class="fas fa-folder text-3xl text-gray-400 mb-2 block"></i>
-            <span class="text-sm font-bold text-gray-700">{{ $mes }}</span>
+            <span class="text-sm font-bold text-gray-700">{{ \Illuminate\Support\Carbon::createFromFormat('Y-m', $mes)->format('m/Y') }}</span>
             <span class="text-xs text-gray-500 block">Informes</span>
         </a>
         @endforeach

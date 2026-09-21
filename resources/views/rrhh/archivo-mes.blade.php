@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('titulo', 'Informes - ' . ($mes ?? ''))
+@section('titulo', 'Informes - ' . ($mes ? \Illuminate\Support\Carbon::createFromFormat('Y-m', $mes)->format('m/Y') : ''))
 
 @section('contenido')
 <div class="space-y-6">
@@ -10,7 +10,7 @@
                class="text-xs text-gray-500 hover:text-brandPrimario font-bold flex items-center mb-2">
                 <i class="fas fa-arrow-left mr-1"></i> Volver al Archivo
             </a>
-            <h3 class="text-xl font-bold text-gray-800">Informes de {{ $mes ?? '' }}</h3>
+            <h3 class="text-xl font-bold text-gray-800">Informes de {{ $mes ? \Illuminate\Support\Carbon::createFromFormat('Y-m', $mes)->format('m/Y') : '' }}</h3>
             <p class="text-xs text-gray-500">Total: {{ $informes->total() ?? 0 }} informes</p>
         </div>
     </div>

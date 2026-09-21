@@ -1,7 +1,7 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Medico\MedicoController;
+use Illuminate\Support\Facades\Route;
 
 // 1. Worklist de Estudios (URL: /medico/estudios)
 Route::get('/estudios', [MedicoController::class, 'index'])->name('estudios.index');

@@ -17,6 +17,8 @@ class CrearEstudioRequest extends FormRequest
             'paciente_nombre' => ['required', 'string', 'max:150'],
             'paciente_dni' => ['required', 'string', 'max:15'],
             'paciente_edad' => ['required', 'integer', 'min:0', 'max:120'],
+            'paciente_telefono' => ['nullable', 'string', 'max:30'],
+            'paciente_email' => ['nullable', 'email', 'max:150'],
             'especialidad_id' => ['required', 'exists:especialidades,id'],
             'tipo_estudio_id' => ['required', 'exists:tipos_estudio,id'],
             'fecha_estudio' => ['required', 'date'],
@@ -31,6 +33,7 @@ class CrearEstudioRequest extends FormRequest
             'archivos.required' => 'Adjuntá al menos un archivo del estudio.',
             'archivos.*.mimes' => 'Solo se aceptan archivos PDF, JPG o PNG.',
             'archivos.*.max' => 'Cada archivo no puede superar los 20MB.',
+            'paciente_email.email' => 'Ingresá un email válido para el paciente.',
         ];
     }
 }

@@ -1,13 +1,13 @@
 {{--
-    Placeholder de sidebar. Cuando junten las vistas con la otra dupla,
-    esto probablemente se unifique en un solo layout compartido por
-    todos los roles (cambia el logo y los ítems de menú según
-    auth()->user()->rol, no la estructura general).
+    Sidebar compartido por todos los roles. Cambia sus links según
+    auth()->user()->role -nunca según qué URL estás mirando-, así que
+    lo que ves acá siempre refleja fielmente con qué usuario estás
+    logueado en este momento.
 --}}
-<aside class="w-full md:w-56 bg-white border-r border-gray-200 p-4 shrink-0">
+<aside class="w-full md:w-56 bg-white border-r border-gray-200 p-4 shrink-0 flex flex-col">
     <img src="{{ asset('images/logo-hu-uso-diario.png') }}" alt="Hospital Universitario" class="h-10 mb-6">
 
-    <nav class="space-y-1">
+    <nav class="space-y-1 flex-1">
         @if (auth()->user() && auth()->user()->role === 'tecnico')
             <a href="{{ route('tecnico.estudios.index') }}"
                 class="flex items-center px-3 py-2 rounded-lg text-sm font-bold {{ request()->routeIs('tecnico.*') ? 'text-brandPrimario bg-blue-50' : 'text-gray-600 hover:bg-gray-50' }}">
@@ -31,12 +31,12 @@
 
         @if (auth()->user() && auth()->user()->role === 'rrhh')
             <a href="{{ route('rrhh.dashboard') }}"
-                class="flex items-center px-3 py-2 rounded-lg text-sm font-bold {{ request()->routeIs('rrhh.*') ? 'text-brandPrimario bg-blue-50' : 'text-gray-600 hover:bg-gray-50' }}">
+                class="flex items-center px-3 py-2 rounded-lg text-sm font-bold {{ request()->routeIs('rrhh.dashboard') ? 'text-brandPrimario bg-blue-50' : 'text-gray-600 hover:bg-gray-50' }}">
                 <i class="fas fa-chart-pie w-5 text-center mr-2"></i>
                 Dashboard RRHH
             </a>
             <a href="{{ route('rrhh.especialidades') }}"
-                class="flex items-center px-3 py-2 rounded-lg text-sm font-bold {{ request()->routeIs('rrhh.especialidades') ? 'text-brandPrimario bg-blue-50' : 'text-gray-600 hover:bg-gray-50' }}">
+                class="flex items-center px-3 py-2 rounded-lg text-sm font-bold {{ request()->routeIs('rrhh.especialidades') || request()->routeIs('rrhh.medicos*') ? 'text-brandPrimario bg-blue-50' : 'text-gray-600 hover:bg-gray-50' }}">
                 <i class="fas fa-folder-open w-5 text-center mr-2"></i>
                 Especialidades
             </a>
@@ -46,9 +46,23 @@
                 Archivo General
             </a>
         @endif
+
+        @if (auth()->user() && auth()->user()->role === 'callcenter')
+            <a href="{{ route('callcenter.informes') }}"
+                class="flex items-center px-3 py-2 rounded-lg text-sm font-bold {{ request()->routeIs('callcenter.*') ? 'text-brandPrimario bg-blue-50' : 'text-gray-600 hover:bg-gray-50' }}">
+                <i class="fas fa-headset w-5 text-center mr-2"></i>
+                Informes Listos
+            </a>
+        @endif
     </nav>
-    <!-- Logout  -->
+
+    <!-- Logout -->
     <div class="mt-auto pt-4 border-t border-gray-200">
+        @if(auth()->user())
+            <p class="px-3 text-[11px] text-gray-400 font-semibold uppercase tracking-wide mb-1">
+                {{ \App\Enums\RolUsuario::tryFrom(auth()->user()->role)?->label() ?? auth()->user()->role }}
+            </p>
+        @endif
         <form method="POST" action="{{ route('logout') }}">
             @csrf
             <button type="submit"

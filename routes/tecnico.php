@@ -1,7 +1,7 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Tecnico\EstudioController;
+use Illuminate\Support\Facades\Route;
 
 // Vista principal (Worklist del Técnico)
 Route::get('/estudios', [EstudioController::class, 'index'])->name('estudios.index');

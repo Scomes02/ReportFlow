@@ -10,10 +10,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * Estudio clínico. El Técnico crea el registro y adjunta los archivos;
- * el Médico lo redacta/firma. Acá dejamos los campos y relaciones que
- * el Técnico necesita completar al crear el estudio -el resto (informe,
- * firmado_at, motivo_rechazo) se termina de definir cuando se junte el
- * schema con la otra dupla.
+ * el Médico lo redacta/firma; RRHH audita cuántos informes hizo cada
+ * médico; Call Center confirma al paciente si ya está listo para retirar.
  */
 class Estudio extends Model
 {
@@ -23,6 +21,8 @@ class Estudio extends Model
         'paciente_nombre',
         'paciente_dni',
         'paciente_edad',
+        'paciente_telefono',
+        'paciente_email',
         'tipo_estudio_id',
         'tecnico_id',
         'estado',
@@ -94,5 +94,16 @@ class Estudio extends Model
     public function getTecnicoNombreAttribute()
     {
         return $this->tecnico->name ?? 'Sin asignar';
+    }
+
+    /**
+     * Un estudio está "listo para entregar" cuando el médico ya lo
+     * firmó. Se centraliza acá -en vez de comparar el enum a mano en
+     * cada vista- porque Call Center, RRHH y el propio Médico necesitan
+     * la misma regla exacta.
+     */
+    public function estaListoParaEntregar(): bool
+    {
+        return $this->estado === EstadoEstudio::Informado;
     }
 }

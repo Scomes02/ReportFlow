@@ -3,12 +3,10 @@
 namespace App\Http\Controllers\Rrhh;
 
 use App\Http\Controllers\Controller;
-use App\Models\Estudio;
 use App\Models\Especialidad;
+use App\Models\Estudio;
 use App\Models\User;
-use Illuminate\Http\Request;
 use Illuminate\View\View;
-use Illuminate\Support\Facades\DB;
 
 class RrhhController extends Controller
 {
@@ -96,7 +94,7 @@ class RrhhController extends Controller
     }
 
     /**
-     * Informes de un médico específico
+     * Informes de un médico específico (listado paginado, por nombre)
      */
     public function informesMedico(string $nombre): View
     {
@@ -114,12 +112,58 @@ class RrhhController extends Controller
     }
 
     /**
+     * Resumen de un médico: cuántos informes firmó en total y por mes.
+     * No maneja ningún monto ni arancel -RRHH acá solo audita volumen
+     * de trabajo, la liquidación de honorarios no forma parte del sistema.
+     */
+    public function resumenInformesMedico(int $medicoId): View
+    {
+        $medico = User::where('id', $medicoId)
+            ->where('role', 'medico')
+            ->firstOrFail();
+
+        // Especialidad del médico, inferida de sus propios estudios informados
+        $especialidadSlug = null;
+        $primerEstudio = Estudio::where('medico_id', $medico->id)
+            ->where('estado', 'informado')
+            ->with('tipoEstudio.especialidad')
+            ->first();
+
+        if ($primerEstudio?->tipoEstudio?->especialidad) {
+            $especialidadSlug = $primerEstudio->tipoEstudio->especialidad->slug;
+        }
+
+        $estudios = Estudio::where('medico_id', $medico->id)
+            ->where('estado', 'informado')
+            ->with(['tipoEstudio', 'tipoEstudio.especialidad'])
+            ->orderBy('firmado_at', 'desc')
+            ->get();
+
+        $totalInformes = $estudios->count();
+
+        $informesPorMes = $estudios->groupBy(function (Estudio $estudio) {
+            return $estudio->firmado_at ? $estudio->firmado_at->format('m/Y') : 'Sin fecha';
+        });
+
+        $mesesActividad = $informesPorMes->keys()->take(6)->toArray();
+
+        return view('rrhh.resumen-informes-medico', compact(
+            'medico',
+            'estudios',
+            'totalInformes',
+            'informesPorMes',
+            'mesesActividad',
+            'especialidadSlug'
+        ));
+    }
+
+    /**
      * Archivo general de informes
      */
     public function archivoGeneral(): View
     {
         $meses = Estudio::where('estado', 'informado')
-            ->selectRaw('DISTINCT DATE_FORMAT(firmado_at, "%m/%Y") as mes')
+            ->selectRaw('DISTINCT DATE_FORMAT(firmado_at, "%Y-%m") as mes')
             ->orderBy('mes', 'desc')
             ->pluck('mes')
             ->toArray();
@@ -138,71 +182,17 @@ class RrhhController extends Controller
     public function archivoMes(string $mes): View
     {
         $meses = Estudio::where('estado', 'informado')
-            ->selectRaw('DISTINCT DATE_FORMAT(firmado_at, "%m/%Y") as mes')
+            ->selectRaw('DISTINCT DATE_FORMAT(firmado_at, "%Y-%m") as mes')
             ->orderBy('mes', 'desc')
             ->pluck('mes')
             ->toArray();
 
         $informes = Estudio::where('estado', 'informado')
-            ->whereRaw('DATE_FORMAT(firmado_at, "%m/%Y") = ?', [$mes])
+            ->whereRaw('DATE_FORMAT(firmado_at, "%Y-%m") = ?', [$mes])
             ->with(['tipoEstudio', 'tipoEstudio.especialidad', 'medico'])
             ->latest('firmado_at')
             ->paginate(20);
 
         return view('rrhh.archivo-mes', compact('informes', 'meses', 'mes'));
-    }
-    /**
-     * Detalle de liquidación de un médico
-     */
-    public function detalleLiquidacion($medicoId)
-    {
-        // Buscar el médico
-        $medico = User::where('id', $medicoId)
-            ->where('role', 'medico')
-            ->firstOrFail();
-
-        // Obtener la especialidad del médico (de sus estudios)
-        $especialidadSlug = null;  // ✅ Variable correcta
-        $primerEstudio = Estudio::where('medico_id', $medico->id)
-            ->where('estado', 'informado')
-            ->with('tipoEstudio.especialidad')
-            ->first();
-
-        if ($primerEstudio && $primerEstudio->tipoEstudio && $primerEstudio->tipoEstudio->especialidad) {
-            $especialidadSlug = $primerEstudio->tipoEstudio->especialidad->slug;  // ✅ Variable correcta
-        }
-
-        // Obtener todos los estudios informados del médico
-        $estudios = Estudio::where('medico_id', $medico->id)
-            ->where('estado', 'informado')
-            ->with(['tipoEstudio', 'tipoEstudio.especialidad'])
-            ->orderBy('firmado_at', 'desc')
-            ->get();
-
-        // Estadísticas de liquidación
-        $totalEstudios = $estudios->count();
-
-        // Agrupar por mes
-        $estudiosPorMes = $estudios->groupBy(function ($estudio) {
-            return $estudio->firmado_at ? $estudio->firmado_at->format('m/Y') : 'Sin fecha';
-        });
-
-        // Calcular honorarios (ejemplo: $50 por estudio)
-        $honorarioPorEstudio = 50;
-        $totalHonorarios = $totalEstudios * $honorarioPorEstudio;
-
-        // Últimos 6 meses de actividad
-        $mesesActividad = $estudiosPorMes->keys()->take(6)->toArray();
-
-        return view('rrhh.detalle-liquidacion', compact(
-            'medico',
-            'estudios',
-            'totalEstudios',
-            'estudiosPorMes',
-            'totalHonorarios',
-            'honorarioPorEstudio',
-            'mesesActividad',
-            'especialidadSlug'  
-        ));
     }
 }

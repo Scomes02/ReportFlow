@@ -1,27 +1,19 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="{{ asset('images/Solo-logo-hu-uso-diario.png') }}">
     <title>Login - ReportFlow</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        .bg-brandDark { background-color: #1e3a5f; }
-        .text-brandDark { color: #1e3a5f; }
-        .bg-brandLight { background-color: #f3f4f6; }
-        .border-brandDark { border-color: #1e3a5f; }
-    </style>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="bg-gray-100 font-sans">
+<body class="h-full bg-gray-100 font-sans text-brandTexto">
     <div class="min-h-screen flex items-center justify-center p-4">
         <div class="w-full max-w-md">
             <!-- Logo -->
             <div class="text-center mb-8">
-                <div class="bg-brandDark text-white p-4 rounded-2xl inline-block shadow-lg mb-4">
-                    <i class="fas fa-hospital-user text-4xl"></i>
-                </div>
-                <h1 class="text-3xl font-extrabold text-brandDark">ReportFlow</h1>
+                <img src="{{ asset('images/logo-hu-uso-diario.png') }}" alt="Hospital Universitario" class="h-14 mx-auto mb-4">
+                <h1 class="text-3xl font-black text-brandPrimario">ReportFlow</h1>
                 <p class="text-gray-500 text-sm mt-1">Sistema de Gestión de Estudios Clínicos</p>
             </div>
 
@@ -32,6 +24,12 @@
                 @if($errors->any())
                     <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm">
                         {{ $errors->first() }}
+                    </div>
+                @endif
+
+                @if(session('status'))
+                    <div class="bg-blue-50 border border-blue-200 text-brandPrimario px-4 py-3 rounded-lg mb-4 text-sm">
+                        {{ session('status') }}
                     </div>
                 @endif
 
@@ -46,29 +44,29 @@
                     <div class="space-y-4">
                         <div>
                             <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
-                                <i class="fas fa-user mr-2 text-brandDark"></i> Usuario
+                                <i class="fas fa-user mr-2 text-brandPrimario"></i> Usuario
                             </label>
-                            <input type="text" 
-                                   name="email" 
+                            <input type="text"
+                                   name="email"
                                    value="{{ old('email') }}"
-                                   class="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-brandDark focus:ring-2 focus:ring-brandDark/20 transition"
+                                   class="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-brandPrimario focus:ring-2 focus:ring-brandPrimario/20 transition"
                                    placeholder="ej: tecnico.prueba@reportflow.local"
                                    required>
                         </div>
 
                         <div>
                             <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
-                                <i class="fas fa-lock mr-2 text-brandDark"></i> Contraseña
+                                <i class="fas fa-lock mr-2 text-brandPrimario"></i> Contraseña
                             </label>
-                            <input type="password" 
-                                   name="password" 
-                                   class="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-brandDark focus:ring-2 focus:ring-brandDark/20 transition"
+                            <input type="password"
+                                   name="password"
+                                   class="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-brandPrimario focus:ring-2 focus:ring-brandPrimario/20 transition"
                                    placeholder="••••••••"
                                    required>
                         </div>
 
-                        <button type="submit" 
-                                class="w-full bg-brandDark hover:bg-blue-900 text-white py-3 rounded-lg text-sm font-bold transition shadow-md hover:shadow-lg flex items-center justify-center">
+                        <button type="submit"
+                                class="w-full bg-brandPrimario hover:opacity-90 text-white py-3 rounded-lg text-sm font-bold transition shadow-md hover:shadow-lg flex items-center justify-center">
                             <i class="fas fa-sign-in-alt mr-2"></i> Ingresar al Portal
                         </button>
                     </div>
@@ -79,16 +77,20 @@
                     <p class="text-xs text-gray-500 text-center mb-3">🔑 Credenciales de prueba</p>
                     <div class="grid grid-cols-2 gap-2 text-xs">
                         <div class="bg-gray-50 p-2 rounded border border-gray-200">
-                            <span class="font-bold text-brandDark">Técnico:</span><br>
+                            <span class="font-bold text-brandPrimario">Técnico:</span><br>
                             <span class="text-gray-600">tecnico.prueba@reportflow.local</span>
                         </div>
                         <div class="bg-gray-50 p-2 rounded border border-gray-200">
-                            <span class="font-bold text-brandDark">RRHH:</span><br>
+                            <span class="font-bold text-brandPrimario">Médico:</span><br>
+                            <span class="text-gray-600">medico@reportflow.local</span>
+                        </div>
+                        <div class="bg-gray-50 p-2 rounded border border-gray-200">
+                            <span class="font-bold text-brandPrimario">RRHH:</span><br>
                             <span class="text-gray-600">rrhh@reportflow.local</span>
                         </div>
-                        <div class="bg-gray-50 p-2 rounded border border-gray-200 col-span-2">
-                            <span class="font-bold text-brandDark">Médico:</span><br>
-                            <span class="text-gray-600">medico@reportflow.local</span>
+                        <div class="bg-gray-50 p-2 rounded border border-gray-200">
+                            <span class="font-bold text-brandPrimario">Call Center:</span><br>
+                            <span class="text-gray-600">callcenter@reportflow.local</span>
                         </div>
                         <div class="bg-gray-50 p-2 rounded border border-gray-200 col-span-2 text-center">
                             <span class="text-gray-500">Contraseña: <strong>password</strong></span>

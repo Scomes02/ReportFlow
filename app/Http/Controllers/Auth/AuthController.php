@@ -64,6 +64,8 @@ class AuthController extends Controller
                 return redirect()->intended('/medico/estudios');
             case 'rrhh':
                 return redirect()->intended('/rrhh/dashboard');
+            case 'callcenter':
+                return redirect()->intended('/callcenter/informes');
             case 'admin':
                 return redirect()->intended('/admin/dashboard');
             default:
