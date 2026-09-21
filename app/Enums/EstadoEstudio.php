@@ -7,7 +7,8 @@ namespace App\Enums;
  *
  * Nuevo      -> recién subido por el Técnico, pendiente de worklist médico.
  * Informado  -> el Médico redactó y firmó el informe.
- * Rechazado  -> el Médico lo devolvió al Técnico con un motivo.
+ * Rechazado  -> el Médico lo devolvió al Técnico con un motivo, a la espera
+ *               de que se vuelva a cargar / corregir el estudio.
  */
 enum EstadoEstudio: string
 {
@@ -20,7 +21,7 @@ enum EstadoEstudio: string
         return match ($this) {
             self::Nuevo => 'Nuevo',
             self::Informado => 'Informado',
-            self::Rechazado => 'Rechazado',
+            self::Rechazado => 'Rechazado - Rehacer',
         };
     }
 
