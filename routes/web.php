@@ -84,14 +84,23 @@ if (app()->environment('local')) {
     });
 
     Route::get('/dev-login-medico', function () {
+        $cardio = \App\Models\Especialidad::where('slug', 'cardiologia')->first();
+
         $user = \App\Models\User::firstOrCreate(
             ['email' => 'medico@reportflow.local'],
             [
                 'name' => 'Dr. Juan Pérez',
                 'password' => bcrypt('password'),
                 'role' => 'medico',
+                'especialidad_id' => $cardio?->id,
             ]
         );
+
+        if ($cardio && ! $user->especialidad_id) {
+            $user->especialidad_id = $cardio->id;
+            $user->save();
+        }
+
         auth()->login($user);
 
         return redirect('/medico/estudios');
