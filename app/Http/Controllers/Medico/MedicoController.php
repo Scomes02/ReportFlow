@@ -18,18 +18,26 @@ class MedicoController extends Controller
     private const HORAS_LIMITE_EDICION = 24;
 
     /**
-     * 1. WORKLIST: Muestra los estudios pendientes de informar
+     * 1. WORKLIST: Muestra los estudios pendientes de informar de la especialidad del médico
      */
     public function index(): View
     {
-        // Traer estudios con estado 'nuevo'
-        // (Opcional: Si quieres filtrar por especialidad, puedes agregar ->where('especialidad_id', auth()->user()->especialidad_id) )
-        $estudios = Estudio::with('tipoEstudio', 'tecnico')
+        $medico = auth()->user()->load('especialidad');
+
+        $estudios = Estudio::with(['tipoEstudio.especialidad', 'tecnico', 'archivos'])
             ->where('estado', 'nuevo')
+            ->when($medico->especialidad_id, function ($query, $especialidadId) {
+                $query->whereHas('tipoEstudio', function ($q) use ($especialidadId) {
+                    $q->where('especialidad_id', $especialidadId);
+                });
+            }, function ($query) {
+                // Si el médico aún no tiene especialidad asignada, no se le muestran estudios
+                $query->whereRaw('1 = 0');
+            })
             ->orderBy('fecha_estudio', 'desc')
             ->get();
 
-        return view('medico.index', compact('estudios'));
+        return view('medico.index', compact('estudios', 'medico'));
     }
 
     /**
@@ -61,11 +69,18 @@ class MedicoController extends Controller
             'informe' => ['required', 'string', 'min:3'],
         ]);
 
-        $estudio = Estudio::findOrFail($id);
+        $medico = auth()->user();
+        $estudio = Estudio::with('tipoEstudio')->findOrFail($id);
+
+        if ($medico->especialidad_id && $estudio->tipoEstudio?->especialidad_id !== $medico->especialidad_id) {
+            return redirect()
+                ->route('medico.estudios.index')
+                ->with('error', 'No tiene permisos para informar un estudio de otra especialidad.');
+        }
 
         $estudio->informe = $request->informe;
         $estudio->estado = 'informado';
-        $estudio->medico_id = auth()->id();
+        $estudio->medico_id = $medico->id;
         $estudio->firmado_at = now();
         $estudio->motivo_rechazo = null; // si venía de un rechazo previo, se limpia
         $estudio->save();
@@ -89,11 +104,18 @@ class MedicoController extends Controller
             'motivo_rechazo.min' => 'El motivo es demasiado corto, agregá un poco más de detalle.',
         ]);
 
-        $estudio = Estudio::findOrFail($id);
+        $medico = auth()->user();
+        $estudio = Estudio::with('tipoEstudio')->findOrFail($id);
+
+        if ($medico->especialidad_id && $estudio->tipoEstudio?->especialidad_id !== $medico->especialidad_id) {
+            return redirect()
+                ->route('medico.estudios.index')
+                ->with('error', 'No tiene permisos para rechazar un estudio de otra especialidad.');
+        }
 
         $estudio->estado = 'rechazado';
         $estudio->motivo_rechazo = $request->motivo_rechazo;
-        $estudio->medico_id = auth()->id(); // queda registrado quién lo rechazó
+        $estudio->medico_id = $medico->id; // queda registrado quién lo rechazó
         $estudio->informe = null;
         $estudio->firmado_at = null;
         $estudio->save();
