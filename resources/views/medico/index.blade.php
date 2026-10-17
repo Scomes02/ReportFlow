@@ -15,11 +15,42 @@
         </div>
     @endif
 
+    {{-- Notificación de error --}}
+    @if(session('error'))
+        <div class="bg-rose-50 border border-rose-200 text-rose-800 px-4 py-3 rounded-lg text-sm flex items-center justify-between shadow-sm">
+            <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                <span>{{ session('error') }}</span>
+            </div>
+        </div>
+    @endif
+
+    {{-- Aviso si el médico no tiene especialidad asignada --}}
+    @if(!$medico->especialidad_id)
+        <div class="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-lg text-xs flex items-center gap-2 shadow-sm">
+            <svg class="w-4 h-4 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+            <span>Su usuario aún no tiene una especialidad asignada en el sistema. Contacte a Administración para que le asignen su especialidad y pueda visualizar sus estudios pendientes.</span>
+        </div>
+    @endif
+
     {{-- Encabezado de la Sección --}}
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-            <h2 class="text-xl font-bold text-slate-800 tracking-tight">Worklist de Estudios Pendientes</h2>
-            <p class="text-xs text-slate-500 mt-0.5">Gestión e informe médico de estudios cargados.</p>
+            <div class="flex items-center gap-2">
+                <h2 class="text-xl font-bold text-slate-800 tracking-tight">Worklist de Estudios Pendientes</h2>
+                @if($medico->especialidad)
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-[#003764] border border-blue-200">
+                        {{ $medico->especialidad->nombre }}
+                    </span>
+                @endif
+            </div>
+            <p class="text-xs text-slate-500 mt-0.5">
+                @if($medico->especialidad)
+                    Estudios pendientes asignados a su especialidad ({{ $medico->especialidad->nombre }}).
+                @else
+                    Gestión e informe médico de estudios cargados.
+                @endif
+            </p>
         </div>
     </div>
 
@@ -165,7 +196,11 @@
                             <td colspan="7" class="px-4 py-12 text-center text-slate-400">
                                 <div class="flex flex-col items-center justify-center gap-2">
                                     <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                                    <span>No hay estudios registrados en el sistema.</span>
+                                    @if($medico->especialidad)
+                                        <span>No hay estudios pendientes de {{ $medico->especialidad->nombre }} en este momento.</span>
+                                    @else
+                                        <span>No hay estudios disponibles para informar.</span>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
