@@ -14,10 +14,13 @@ Route::get('/', function () {
 // 3. Mis Informes (URL: /medico/mis-informes)
 Route::get('/mis-informes', [MedicoController::class, 'misInformes'])->name('mis-informes');
 
-// 4. Procesar Informe (URL: /medico/estudios/{id}/informar)
-Route::post('/estudios/{id}/informar', [MedicoController::class, 'guardarInforme'])->name('estudios.informar');
+// 4. Pantalla dedicada para Informar Estudio (URL: /medico/estudios/{id}/informar)
+Route::get('/estudios/{id}/informar', [MedicoController::class, 'informar'])->name('estudios.informar');
 
-// 5. Rechazar Estudio, devolverlo al técnico con un motivo (URL: /medico/estudios/{id}/rechazar)
+// 5. Procesar y guardar el informe firmado (URL: /medico/estudios/{id}/informar)
+Route::post('/estudios/{id}/informar', [MedicoController::class, 'guardarInforme'])->name('estudios.informar.guardar');
+
+// 6. Rechazar Estudio, devolverlo al técnico con un motivo (URL: /medico/estudios/{id}/rechazar)
 Route::post('/estudios/{id}/rechazar', [MedicoController::class, 'rechazarEstudio'])->name('estudios.rechazar');
 
 // 6. Editar Informe (URL: /medico/informes/{id})

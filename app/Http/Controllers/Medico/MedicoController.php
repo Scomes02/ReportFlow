@@ -62,7 +62,31 @@ class MedicoController extends Controller
     }
 
     /**
-     * 3. INFORMAR POR PRIMERA VEZ: Desde la Worklist
+     * 3. PANTALLA DEDICADA PARA INFORMAR ESTUDIO (SPLIT-SCREEN)
+     * Visor integrado a la izquierda y formulario de informe médico a la derecha.
+     */
+    public function informar(int $id): View|RedirectResponse
+    {
+        $medico = auth()->user()->load('especialidad');
+        $estudio = Estudio::with(['tipoEstudio.especialidad', 'tecnico', 'archivos'])->findOrFail($id);
+
+        if ($estudio->estado === \App\Enums\EstadoEstudio::Informado) {
+            return redirect()
+                ->route('medico.mis-informes')
+                ->with('status', 'Este estudio ya ha sido informado y firmado.');
+        }
+
+        if ($medico->especialidad_id && $estudio->tipoEstudio?->especialidad_id !== $medico->especialidad_id) {
+            return redirect()
+                ->route('medico.estudios.index')
+                ->with('error', 'No tiene permisos para acceder a un estudio de otra especialidad.');
+        }
+
+        return view('medico.informar', compact('estudio', 'medico'));
+    }
+
+    /**
+     * 4. GUARDAR INFORME FIRMADO
      */
     public function guardarInforme(Request $request, $id): RedirectResponse
     {
