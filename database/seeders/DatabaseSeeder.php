@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             EspecialidadSeeder::class,   // 8 especialidades + sus tipos de estudio
             TecnicoDePruebaSeeder::class, // usuario técnico de prueba para /dev-login
             EstudioDemoSeeder::class,     // crea médicos/técnicos demo + ~80 estudios realistas
+            ArchivosDemoSeeder::class,    // genera placas y archivos de muestra para los estudios demo
         ]);
     }
 }

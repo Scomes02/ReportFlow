@@ -7,6 +7,7 @@ use App\Models\Estudio;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class MedicoController extends Controller
@@ -176,6 +177,35 @@ class MedicoController extends Controller
         return redirect()
             ->route('medico.mis-informes')
             ->with('success', '📎 Adenda agregada al informe correctamente.');
+    }
+
+    /**
+     * 7. VISUALIZAR ARCHIVO DEL ESTUDIO
+     * Permite al médico ver o descargar de forma segura el archivo adjunto (PDF, imagen, etc.)
+     */
+    public function verArchivo(int $id, int $archivoId)
+    {
+        $medico = auth()->user();
+        $estudio = Estudio::with('tipoEstudio')->findOrFail($id);
+
+        if ($medico->especialidad_id && $estudio->tipoEstudio?->especialidad_id !== $medico->especialidad_id) {
+            abort(403, 'No tiene permisos para acceder a los archivos de este estudio.');
+        }
+
+        $archivo = $estudio->archivos()->findOrFail($archivoId);
+
+        if (! Storage::disk($archivo->disco)->exists($archivo->path)) {
+            abort(404, 'El archivo físico no se encuentra disponible en el almacenamiento.');
+        }
+
+        return Storage::disk($archivo->disco)->response(
+            $archivo->path,
+            $archivo->nombre_original,
+            [
+                'Content-Disposition' => 'inline; filename="' . $archivo->nombre_original . '"',
+                'Content-Type' => $archivo->mime_type ?? 'application/octet-stream',
+            ]
+        );
     }
 
     /**

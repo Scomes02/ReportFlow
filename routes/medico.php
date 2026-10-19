@@ -25,3 +25,6 @@ Route::put('/informes/{id}', [MedicoController::class, 'updateInforme'])->name('
 
 // 7. Añadir Adenda (URL: /medico/estudios/{id}/adendas)
 Route::post('/estudios/{id}/adendas', [MedicoController::class, 'guardarAdenda'])->name('adendas.store');
+
+// 8. Visualizar Archivo Adjunto del Estudio (URL: /medico/estudios/{id}/archivos/{archivoId})
+Route::get('/estudios/{id}/archivos/{archivoId}', [MedicoController::class, 'verArchivo'])->name('estudios.archivos.ver');
