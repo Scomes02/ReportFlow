@@ -105,4 +105,55 @@ class FiltradoEspecialidadTest extends TestCase
             'informe' => null,
         ]);
     }
+
+    public function test_pantalla_dedicada_informar_carga_con_visor_y_datos(): void
+    {
+        $cardiologia = Especialidad::create(['nombre' => 'Cardiología', 'slug' => 'cardiologia']);
+        $ecg = TipoEstudio::create(['especialidad_id' => $cardiologia->id, 'nombre' => 'Electrocardiograma']);
+
+        $tecnico = User::factory()->tecnico()->create();
+        $cardiologo = User::factory()->medico($cardiologia->id)->create(['name' => 'Dr. Cardiólogo']);
+
+        $estudio = Estudio::create([
+            'paciente_nombre' => 'Ana Gómez',
+            'paciente_dni' => '44444444',
+            'paciente_edad' => 38,
+            'tipo_estudio_id' => $ecg->id,
+            'tecnico_id' => $tecnico->id,
+            'estado' => 'nuevo',
+            'fecha_estudio' => now(),
+        ]);
+
+        $response = $this->actingAs($cardiologo)->get("/medico/estudios/{$estudio->id}/informar");
+
+        $response->assertStatus(200);
+        $response->assertSee('Ana Gómez');
+        $response->assertSee('Electrocardiograma');
+        $response->assertSee('Diagnóstico / Informe Clínico');
+    }
+
+    public function test_medico_no_puede_abrir_pantalla_informar_de_otra_especialidad(): void
+    {
+        $cardiologia = Especialidad::create(['nombre' => 'Cardiología', 'slug' => 'cardiologia']);
+        $neumonologia = Especialidad::create(['nombre' => 'Neumonología', 'slug' => 'neumonologia']);
+        $espiro = TipoEstudio::create(['especialidad_id' => $neumonologia->id, 'nombre' => 'Espirometría']);
+
+        $tecnico = User::factory()->tecnico()->create();
+        $cardiologo = User::factory()->medico($cardiologia->id)->create();
+
+        $estudioNeumo = Estudio::create([
+            'paciente_nombre' => 'Paciente Neumo',
+            'paciente_dni' => '55555555',
+            'paciente_edad' => 62,
+            'tipo_estudio_id' => $espiro->id,
+            'tecnico_id' => $tecnico->id,
+            'estado' => 'nuevo',
+            'fecha_estudio' => now(),
+        ]);
+
+        $response = $this->actingAs($cardiologo)->get("/medico/estudios/{$estudioNeumo->id}/informar");
+
+        $response->assertRedirect('/medico/estudios');
+        $response->assertSessionHas('error');
+    }
 }
