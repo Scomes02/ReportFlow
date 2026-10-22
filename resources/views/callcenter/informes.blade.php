@@ -65,7 +65,7 @@
                                 <i class="fas fa-address-card mr-1"></i> Ver contacto
                             </button>
 
-                            {{-- Modal con datos de contacto y envío simulado --}}
+                            {{-- Modal con datos de contacto y envío del aviso por correo --}}
                             <template x-teleport="body">
                                 <div x-show="modalAbierto" x-cloak
                                      class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -89,8 +89,15 @@
                                             </div>
 
                                             <p class="text-xs text-gray-500">
-                                                Al confirmar, se simula el envío de un aviso al paciente para que sepa que puede retirar su informe. No se manda ningún email ni SMS real.
+                                                Al confirmar, se enviará un correo a <strong>{{ $informe->paciente_email ?? 'el email del paciente' }}</strong> avisando que su informe está listo para retirar.
                                             </p>
+
+                                            @if($informe->aviso_enviado_at)
+                                                <p class="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
+                                                    <i class="fas fa-check-circle mr-1"></i>
+                                                    Aviso enviado el {{ $informe->aviso_enviado_at->format('d/m/Y - H:i') }}.
+                                                </p>
+                                            @endif
 
                                             <form method="POST" action="{{ route('callcenter.informes.enviar', $informe->id) }}" class="flex justify-end gap-2 pt-2 border-t border-gray-100">
                                                 @csrf
@@ -98,10 +105,16 @@
                                                         class="px-4 py-2 rounded-lg text-xs font-semibold text-gray-600 hover:bg-gray-100">
                                                     Cerrar
                                                 </button>
-                                                <button type="submit"
-                                                        class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-lg text-xs font-bold shadow-sm">
-                                                    <i class="fas fa-paper-plane mr-1"></i> Enviar aviso al paciente
-                                                </button>
+                                                @if($informe->paciente_email)
+                                                    <button type="submit"
+                                                            class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-lg text-xs font-bold shadow-sm">
+                                                        <i class="fas fa-paper-plane mr-1"></i> {{ $informe->aviso_enviado_at ? 'Reenviar aviso' : 'Enviar aviso al paciente' }}
+                                                    </button>
+                                                @else
+                                                    <span class="text-xs text-red-600 font-semibold self-center">
+                                                        Sin email cargado
+                                                    </span>
+                                                @endif
                                             </form>
                                         </div>
                                     </div>

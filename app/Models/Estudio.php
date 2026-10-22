@@ -33,6 +33,7 @@ class Estudio extends Model
         'estado' => EstadoEstudio::class,
         'fecha_estudio' => 'datetime',
         'firmado_at' => 'datetime',
+        'aviso_enviado_at' => 'datetime',
     ];
 
     public function tipoEstudio(): BelongsTo
@@ -48,6 +49,11 @@ class Estudio extends Model
     public function medico(): BelongsTo
     {
         return $this->belongsTo(User::class, 'medico_id');
+    }
+
+    public function avisoEnviadoPor(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'aviso_enviado_por');
     }
 
     public function archivos(): HasMany
