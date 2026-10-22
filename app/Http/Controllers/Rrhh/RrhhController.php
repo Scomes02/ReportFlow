@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Rrhh;
 use App\Http\Controllers\Controller;
 use App\Models\Especialidad;
 use App\Models\Estudio;
+use App\Models\TipoEstudio;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class RrhhController extends Controller
@@ -160,20 +162,49 @@ class RrhhController extends Controller
     /**
      * Archivo general de informes
      */
-    public function archivoGeneral(): View
+    public function archivoGeneral(Request $request): View
     {
+        $medicoId = $request->input('medico_id');
+        $especialidadId = $request->input('especialidad_id');
+        $tipoEstudioId = $request->input('tipo_estudio_id');
+        $desde = $request->input('desde');
+        $hasta = $request->input('hasta');
+
         $meses = Estudio::where('estado', 'informado')
             ->selectRaw('DISTINCT DATE_FORMAT(firmado_at, "%Y-%m") as mes')
             ->orderBy('mes', 'desc')
             ->pluck('mes')
             ->toArray();
 
-        $informes = Estudio::where('estado', 'informado')
+        $informes = Estudio::query()
+            ->where('estado', 'informado')
             ->with(['tipoEstudio', 'tipoEstudio.especialidad', 'medico'])
+            ->when($medicoId, function ($query, $medicoId) {
+                $query->where('medico_id', $medicoId);
+            })
+            ->when($tipoEstudioId, function ($query, $tipoEstudioId) {
+                $query->where('tipo_estudio_id', $tipoEstudioId);
+            })
+            ->when($especialidadId, function ($query, $especialidadId) {
+                $query->whereHas('tipoEstudio', function ($q) use ($especialidadId) {
+                    $q->where('especialidad_id', $especialidadId);
+                });
+            })
+            ->when($desde, function ($query, $desde) {
+                $query->whereDate('firmado_at', '>=', $desde);
+            })
+            ->when($hasta, function ($query, $hasta) {
+                $query->whereDate('firmado_at', '<=', $hasta);
+            })
             ->latest('firmado_at')
-            ->paginate(20);
+            ->paginate(20)
+            ->withQueryString();
 
-        return view('rrhh.archivo', compact('informes', 'meses'));
+        $medicos = User::where('role', 'medico')->orderBy('name')->get();
+        $especialidades = Especialidad::orderBy('nombre')->get();
+        $tiposEstudio = TipoEstudio::with('especialidad')->orderBy('nombre')->get();
+
+        return view('rrhh.archivo', compact('informes', 'meses', 'medicos', 'especialidades', 'tiposEstudio'));
     }
 
     /**

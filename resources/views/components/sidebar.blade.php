@@ -61,6 +61,11 @@
         @if(auth()->user())
             <p class="px-3 text-[11px] text-gray-400 font-semibold uppercase tracking-wide mb-1">
                 {{ \App\Enums\RolUsuario::tryFrom(auth()->user()->role)?->label() ?? auth()->user()->role }}
+                @if(auth()->user()->role === 'medico' && auth()->user()->especialidad)
+                    <span class="block text-[10px] text-[#003764] font-medium capitalize">
+                        {{ auth()->user()->especialidad->nombre }}
+                    </span>
+                @endif
             </p>
         @endif
         <form method="POST" action="{{ route('logout') }}">
