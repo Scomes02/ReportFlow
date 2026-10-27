@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Medico;
 
 use App\Http\Controllers\Controller;
 use App\Models\Estudio;
+use App\Services\Dcm4cheeService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class MedicoController extends Controller
@@ -17,19 +19,23 @@ class MedicoController extends Controller
      */
     private const HORAS_LIMITE_EDICION = 24;
 
+    public function __construct(
+        private readonly Dcm4cheeService $pacsService
+    ) {}
+
     /**
      * 1. WORKLIST: Muestra los estudios pendientes de informar
      */
     public function index(): View
     {
-        // Traer estudios con estado 'nuevo'
-        // (Opcional: Si quieres filtrar por especialidad, puedes agregar ->where('especialidad_id', auth()->user()->especialidad_id) )
-        $estudios = Estudio::with('tipoEstudio', 'tecnico')
+        $estudios = Estudio::with(['tipoEstudio', 'tecnico', 'archivos'])
             ->where('estado', 'nuevo')
             ->orderBy('fecha_estudio', 'desc')
             ->get();
 
-        return view('medico.index', compact('estudios'));
+        $pacsOnline = $this->pacsService->verificarConexion();
+
+        return view('medico.index', compact('estudios', 'pacsOnline'));
     }
 
     /**
@@ -53,7 +59,35 @@ class MedicoController extends Controller
     }
 
     /**
-     * 3. INFORMAR POR PRIMERA VEZ: Desde la Worklist
+     * 3. PANTALLA DEDICADA DE INFORME CON VISOR DICOM / MULTIMEDIA
+     */
+    public function informar(int $id): View|RedirectResponse
+    {
+        $estudio = Estudio::with(['tipoEstudio', 'tecnico', 'archivos'])->findOrFail($id);
+
+        if ($estudio->estado === \App\Enums\EstadoEstudio::Informado) {
+            return redirect()
+                ->route('medico.mis-informes')
+                ->with('status', 'Este estudio ya ha sido informado y firmado.');
+        }
+
+        $pacsInfo = null;
+        $pacsSeries = [];
+        $viewerUrl = null;
+        $ohifUrl = null;
+
+        if ($estudio->tieneDicom()) {
+            $pacsInfo = $this->pacsService->consultarEstudio($estudio->study_instance_uid);
+            $pacsSeries = $this->pacsService->consultarSeries($estudio->study_instance_uid);
+            $viewerUrl = $this->pacsService->obtenerUrlVisor($estudio->study_instance_uid);
+            $ohifUrl = $this->pacsService->obtenerUrlOhif($estudio->study_instance_uid);
+        }
+
+        return view('medico.informar', compact('estudio', 'pacsInfo', 'pacsSeries', 'viewerUrl', 'ohifUrl'));
+    }
+
+    /**
+     * 4. GUARDAR INFORME FIRMADO
      */
     public function guardarInforme(Request $request, $id): RedirectResponse
     {
@@ -154,6 +188,46 @@ class MedicoController extends Controller
         return redirect()
             ->route('medico.mis-informes')
             ->with('success', '📎 Adenda agregada al informe correctamente.');
+    }
+
+    /**
+     * 7. VISUALIZAR ARCHIVO DEL ESTUDIO
+     */
+    public function verArchivo(int $id, int $archivoId)
+    {
+        $estudio = Estudio::findOrFail($id);
+        $archivo = $estudio->archivos()->findOrFail($archivoId);
+
+        if (! Storage::disk($archivo->disco)->exists($archivo->path)) {
+            abort(404, 'El archivo físico no se encuentra disponible.');
+        }
+
+        return Storage::disk($archivo->disco)->response(
+            $archivo->path,
+            $archivo->nombre_original,
+            [
+                'Content-Disposition' => 'inline; filename="' . $archivo->nombre_original . '"',
+                'Content-Type' => $archivo->mime_type ?? 'application/octet-stream',
+            ]
+        );
+    }
+
+    /**
+     * 8. VISOR DICOM FULLSCREEN / EMBED PROXY
+     */
+    public function dicomViewer(int $id): View|RedirectResponse
+    {
+        $estudio = Estudio::findOrFail($id);
+
+        if (! $estudio->tieneDicom()) {
+            return redirect()->back()->with('error', 'El estudio no posee identificador DICOM (StudyInstanceUID).');
+        }
+
+        $viewerUrl = $this->pacsService->obtenerUrlVisor($estudio->study_instance_uid);
+        $ohifUrl = $this->pacsService->obtenerUrlOhif($estudio->study_instance_uid);
+        $pacsInfo = $this->pacsService->consultarEstudio($estudio->study_instance_uid);
+
+        return view('medico.dicom-viewer', compact('estudio', 'viewerUrl', 'ohifUrl', 'pacsInfo'));
     }
 
     /**
