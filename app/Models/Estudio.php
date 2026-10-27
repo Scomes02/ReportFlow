@@ -24,6 +24,10 @@ class Estudio extends Model
         'paciente_telefono',
         'paciente_email',
         'tipo_estudio_id',
+        'study_instance_uid',
+        'accession_number',
+        'modalidad',
+        'pacs_status',
         'tecnico_id',
         'estado',
         'fecha_estudio',
@@ -105,5 +109,42 @@ class Estudio extends Model
     public function estaListoParaEntregar(): bool
     {
         return $this->estado === EstadoEstudio::Informado;
+    }
+
+    /**
+     * Determina si el estudio tiene imágenes médicas almacenadas en el servidor PACS (dcm4chee)
+     */
+    public function tieneDicom(): bool
+    {
+        return ! empty($this->study_instance_uid);
+    }
+
+    /**
+     * URL para visualizar el estudio en el visor DICOM web (OHIF Viewer o dcm4chee ui2)
+     */
+    public function dicomViewerUrl(): ?string
+    {
+        if (! $this->tieneDicom()) {
+            return null;
+        }
+
+        $viewerUrl = config('pacs.viewer_url', 'http://localhost:8080/dcm4chee-arc/ui2');
+
+        // Formato para visor dcm4chee ui2 o visor integrado OHIF
+        return rtrim($viewerUrl, '/') . '/#/study/' . $this->study_instance_uid;
+    }
+
+    /**
+     * URL para consultar las instancias DICOM vía DICOMweb WADO-RS
+     */
+    public function dicomWadoUrl(): ?string
+    {
+        if (! $this->tieneDicom()) {
+            return null;
+        }
+
+        $dicomwebUrl = config('pacs.dicomweb_url', 'http://localhost:8080/dcm4chee-arc/aets/DCM4CHEE/rs');
+
+        return rtrim($dicomwebUrl, '/') . '/studies/' . $this->study_instance_uid;
     }
 }
