@@ -13,7 +13,7 @@ class EstudioControllerTest extends TestCase
     public function test_un_tecnico_puede_ver_la_pantalla_de_estudios(): void
     {
         // Arrange
-        $tecnico = User::factory()->create();
+        $tecnico = User::factory()->create(['role' => 'tecnico']);
 
         $this->actingAs($tecnico);
 

@@ -34,6 +34,9 @@ class EstudioController extends Controller
     {
         $datos = $request->safe()->except('archivos');
         $datos['tecnico_id'] = auth()->id();
+        if (!empty($datos['study_instance_uid'])) {
+            $datos['pacs_status'] = 'ONLINE';
+        }
 
         $this->almacenamiento->crear($datos, $request->file('archivos'));
 
