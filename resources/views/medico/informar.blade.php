@@ -33,6 +33,7 @@
     invertido: false,
     presetActivo: 'normal',
     reglaActiva: false,
+    mostrarOverlay: true,
     modalRechazo: false,
 
     aplicarPreset(preset) {
@@ -107,9 +108,11 @@
         <div class="flex items-center gap-3 text-xs">
             @if($estudio->tieneDicom() && $viewerUrl)
                 <a href="{{ $viewerUrl }}" target="_blank" 
+                   style="background-color: #4f46e5; color: #ffffff;"
+                   title="Abrir este estudio en la consola web oficial de dcm4chee"
                    class="inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition shadow-sm">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-                    Abrir en dcm4chee
+                    <svg width="14" height="14" style="width: 14px; height: 14px; flex-shrink: 0;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                    <span>Abrir en dcm4chee</span>
                 </a>
             @endif
 
@@ -216,40 +219,51 @@
                             class="p-1.5 rounded transition">
                         📏
                     </button>
+                    <button type="button" @click="mostrarOverlay = !mostrarOverlay" 
+                            :class="mostrarOverlay ? 'bg-slate-700 text-cyan-400 border border-cyan-500/30' : 'text-slate-500 hover:text-white'"
+                            title="Activar o desactivar datos superpuestos en la placa"
+                            class="px-2 py-1 rounded transition text-[10px] font-mono font-bold">
+                        INFO
+                    </button>
                 </div>
             </div>
 
             {{-- ÁREA DEL VISOR MÉDICO (FONDO NEGRO RADIOLÓGICO) --}}
-            <div class="flex-1 bg-black relative overflow-hidden flex items-center justify-center">
+            <div class="flex-1 bg-black relative overflow-hidden flex items-center justify-center" style="position: relative; width: 100%; height: 100%; min-height: 500px; background-color: #000000; overflow: hidden;">
 
                 {{-- CASO A: MODO DICOM PACS (dcm4chee-arc-light) --}}
-                <div x-show="visorModo === 'dicom'" class="w-full h-full relative flex items-center justify-center">
+                <div x-show="visorModo === 'dicom'" class="w-full h-full relative flex items-center justify-center" style="position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
                     
                     {{-- Overlay con Metadatos DICOM en las 4 esquinas (Estilo Estación PACS) --}}
-                    <div class="absolute top-3 left-3 z-20 pointer-events-none text-[11px] font-mono text-cyan-400 bg-black/60 p-2 rounded backdrop-blur-sm border border-cyan-500/20 leading-tight">
-                        <p class="font-bold text-white">{{ strtoupper($estudio->paciente_nombre) }}</p>
+                    <div x-show="mostrarOverlay" x-cloak
+                         style="position: absolute; top: 12px; left: 12px; z-index: 20; background-color: rgba(0, 0, 0, 0.7); pointer-events: none; padding: 8px 10px; border-radius: 6px; font-family: monospace; font-size: 11px; line-height: 1.3; color: #22d3ee; border: 1px solid rgba(34, 211, 238, 0.25); backdrop-filter: blur(4px);">
+                        <p style="font-weight: bold; color: #ffffff;">{{ strtoupper($estudio->paciente_nombre) }}</p>
                         <p>ID: {{ $estudio->paciente_dni }} | Edad: {{ $estudio->paciente_edad }}A</p>
-                        <p class="text-slate-400">HU UNCuyo · Radiología</p>
+                        <p style="color: #94a3b8;">HU UNCuyo · Radiología</p>
                     </div>
 
-                    <div class="absolute top-3 right-3 z-20 pointer-events-none text-[11px] font-mono text-right text-cyan-400 bg-black/60 p-2 rounded backdrop-blur-sm border border-cyan-500/20 leading-tight">
-                        <p class="font-bold text-white">MOD: {{ $estudio->modalidad ?? 'CR' }}</p>
+                    <div x-show="mostrarOverlay" x-cloak
+                         style="position: absolute; top: 12px; right: 12px; z-index: 20; background-color: rgba(0, 0, 0, 0.7); pointer-events: none; padding: 8px 10px; border-radius: 6px; font-family: monospace; font-size: 11px; line-height: 1.3; text-align: right; color: #22d3ee; border: 1px solid rgba(34, 211, 238, 0.25); backdrop-filter: blur(4px);">
+                        <p style="font-weight: bold; color: #ffffff;">MOD: {{ $estudio->modalidad ?? 'CR' }}</p>
                         <p>{{ $estudio->fecha_estudio->format('d/m/Y H:i') }}</p>
-                        <p class="text-slate-400">Acc: {{ $estudio->accession_number ?? 'REC-' . $estudio->id }}</p>
+                        <p style="color: #94a3b8;">Acc: {{ $estudio->accession_number ?? 'REC-' . $estudio->id }}</p>
                     </div>
 
-                    <div class="absolute bottom-3 left-3 z-20 pointer-events-none text-[10px] font-mono text-amber-300 bg-black/60 p-2 rounded backdrop-blur-sm border border-amber-500/20">
+                    <div x-show="mostrarOverlay" x-cloak
+                         style="position: absolute; bottom: 12px; left: 12px; z-index: 20; background-color: rgba(0, 0, 0, 0.7); pointer-events: none; padding: 6px 10px; border-radius: 6px; font-family: monospace; font-size: 10px; line-height: 1.3; color: #fcd34d; border: 1px solid rgba(251, 191, 36, 0.25); backdrop-filter: blur(4px);">
                         <p>W/L: <span x-text="contraste"></span> / <span x-text="brillo"></span> (<span x-text="presetActivo"></span>)</p>
                         <p>Zoom: <span x-text="Math.round(zoom * 100) + '%'"></span> | Rot: <span x-text="rotacion + '°'"></span></p>
                     </div>
 
-                    <div class="absolute bottom-3 right-3 z-20 pointer-events-none text-[10px] font-mono text-slate-400 bg-black/60 p-2 rounded backdrop-blur-sm text-right">
-                        <p class="text-emerald-400 font-bold">● dcm4chee PACS</p>
-                        <p class="truncate max-w-[200px]" title="{{ $estudio->study_instance_uid }}">{{ substr($estudio->study_instance_uid, 0, 24) }}...</p>
+                    <div x-show="mostrarOverlay" x-cloak
+                         style="position: absolute; bottom: 12px; right: 12px; z-index: 20; background-color: rgba(0, 0, 0, 0.7); pointer-events: none; padding: 6px 10px; border-radius: 6px; font-family: monospace; font-size: 10px; line-height: 1.3; text-align: right; color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.2); backdrop-filter: blur(4px);">
+                        <p style="color: #34d399; font-weight: bold;">● dcm4chee PACS</p>
+                        <p style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ $estudio->study_instance_uid }}">{{ substr($estudio->study_instance_uid, 0, 24) }}...</p>
                     </div>
 
                     {{-- Regla diagnóstica milimétrica superpuesta (si se activa) --}}
-                    <div x-show="reglaActiva" x-cloak class="absolute z-20 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-amber-400/90 text-black px-3 py-1 rounded text-xs font-mono font-bold shadow-2xl pointer-events-none flex items-center gap-2 border border-black">
+                    <div x-show="reglaActiva" x-cloak 
+                         style="position: absolute; z-index: 20; left: 50%; top: 50%; transform: translate(-50%, -50%); pointer-events: none; background: rgba(251, 191, 36, 0.95); color: #000; padding: 4px 12px; border-radius: 6px; font-family: monospace; font-size: 11px; font-weight: bold; border: 1px solid #000; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
                         <span>├────────── 50 mm ──────────┤</span>
                     </div>
 
@@ -369,17 +383,17 @@
                         </p>
                     </div>
 
-                    <div class="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-100">
+                    <div class="pt-5 flex flex-wrap items-center justify-center gap-4 sm:gap-6 border-t border-slate-100">
                         <button type="button" @click="modalRechazo = true"
-                                class="w-full sm:w-auto bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 px-4 py-2.5 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-1.5">
-                            <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                            Rehacer (Devolver)
+                                class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-bold bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 shadow-sm hover:shadow transition-all w-[210px] sm:w-[240px] h-12 cursor-pointer">
+                            <svg width="18" height="18" style="width: 18px; height: 18px; flex-shrink: 0;" class="text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                            <span>Rehacer (Devolver)</span>
                         </button>
 
                         <button type="submit"
-                                class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-lg text-xs font-bold shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-1 flex items-center justify-center gap-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                            Firmar y Guardar
+                                class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md hover:shadow-lg transition-all w-[210px] sm:w-[240px] h-12 cursor-pointer">
+                            <svg width="18" height="18" style="width: 18px; height: 18px; flex-shrink: 0;" class="text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            <span>Firmar y Guardar</span>
                         </button>
                     </div>
                 </form>

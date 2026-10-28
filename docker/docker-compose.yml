@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  # Base de datos PostgreSQL para los metadatos DICOM de dcm4chee
+  pacs-db:
+    image: dcm4che/postgres-dcm4chee:16.0-31
+    container_name: pacs-db
+    environment:
+      POSTGRES_DB: pacsdb
+      POSTGRES_USER: pacs
+      POSTGRES_PASSWORD: pacs
+    volumes:
+      - pacs-db-data:/var/lib/postgresql/data
+    networks:
+      - pacs-net
+    restart: unless-stopped
+
+  # Directorio LDAP para configuración de AETs y nodos DICOM
+  pacs-ldap:
+    image: dcm4che/slapd-dcm4chee:2.6.6-31.0
+    container_name: pacs-ldap
+    environment:
+      LDAP_ROOTPASS: secret
+      LDAP_CONFIGPASS: secret
+    volumes:
+      - pacs-ldap-data:/var/lib/openldap/openldap-data
+      - pacs-ldap-config:/etc/openldap/slapd.d
+    networks:
+      - pacs-net
+    restart: unless-stopped
+
+  # Servidor PACS DICOM / DICOMweb (dcm4chee-arc-light 5.x)
+  dcm4chee-arc:
+    image: dcm4che/dcm4chee-arc-psql:5.31.0
+    container_name: dcm4chee-arc
+    ports:
+      - "8080:8080"   # UI web, DICOMweb RESTful API (WADO-RS / QIDO-RS / STOW-RS)
+      - "11112:11112" # DICOM C-STORE, C-FIND, C-MOVE (puerto estándar DICOM)
+      - "2575:2575"   # Servidor HL7
+    environment:
+      WILDFLY_CHOWN: /opt/wildfly/standalone /storage
+      WILDFLY_WAIT_FOR: pacs-ldap:389 pacs-db:5432
+      JAVA_OPTS: "-Xms1024m -Xmx2048m -XX:MetaspaceSize=128M -XX:MaxMetaspaceSize=512m"
+      HTTP_PORT: 8080
+      STORAGE_DIR: /storage/fs1
+    volumes:
+      - pacs-storage:/storage/fs1
+    depends_on:
+      - pacs-ldap
+      - pacs-db
+    networks:
+      - pacs-net
+    restart: unless-stopped
+
+volumes:
+  pacs-db-data:
+  pacs-ldap-data:
+  pacs-ldap-config:
+  pacs-storage:
+
+networks:
+  pacs-net:
+    driver: bridge

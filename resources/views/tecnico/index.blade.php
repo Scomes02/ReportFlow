@@ -32,8 +32,10 @@
                         <td class="px-4 py-3">
                             <span class="font-medium text-slate-800">{{ $estudio->tipoEstudio->nombre }}</span>
                             @if ($estudio->tieneDicom())
-                                <div class="inline-flex items-center gap-1 mt-0.5 px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
-                                    <svg class="w-3 h-3 text-indigo-600" fill="currentColor" viewBox="0 0 20 20"><path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4zM3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 00-1 1v2a1 1 0 102 0v-2a1 1 0 00-1-1zm4 0a1 1 0 00-1 1v2a1 1 0 102 0v-2a1 1 0 00-1-1z"/></svg>
+                                <div class="inline-flex items-center gap-1 mt-0.5 px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 whitespace-nowrap" style="font-size: 10px; line-height: 14px;">
+                                    <svg width="12" height="12" viewBox="0 0 20 20" fill="currentColor" style="width: 12px; height: 12px; min-width: 12px; flex-shrink: 0;" class="text-indigo-600">
+                                        <path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4zM3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 00-1 1v2a1 1 0 102 0v-2a1 1 0 00-1-1zm4 0a1 1 0 00-1 1v2a1 1 0 102 0v-2a1 1 0 00-1-1z"/>
+                                    </svg>
                                     <span>DICOM [{{ $estudio->modalidad ?? 'CR' }}]</span>
                                 </div>
                             @endif
