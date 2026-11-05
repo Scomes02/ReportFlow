@@ -14,13 +14,15 @@ class AvisoInformeListo extends Mailable
 
     public function __construct(public Estudio $estudio)
     {
-        $this->estudio->loadMissing('tipoEstudio');
+        $this->estudio->loadMissing(['tipoEstudio.especialidad', 'medico']);
     }
 
     public function envelope(): Envelope
     {
+        $tipo = $this->estudio->tipoEstudio->nombre ?? 'estudio';
+
         return new Envelope(
-            subject: 'Tu informe ya está listo para retirar',
+            subject: "Tu informe médico está disponible — {$tipo}",
         );
     }
 

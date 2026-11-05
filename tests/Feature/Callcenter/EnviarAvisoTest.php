@@ -36,7 +36,16 @@ class EnviarAvisoTest extends TestCase
 
         $this->assertNotNull($estudio->aviso_enviado_at);
         $this->assertNotNull($estudio->aviso_enviado_por);
-        $this->assertStringContainsString('Ana Pérez', (new AvisoInformeListo($estudio))->render());
+
+        $render = (new AvisoInformeListo($estudio))->render();
+
+        $this->assertStringContainsString('Ana Pérez', $render);
+        $this->assertStringContainsString('Informe de prueba.', $render);
+        $this->assertStringContainsString('Explicación en lenguaje claro', $render);
+        $this->assertStringContainsString('Explicación de prueba para el paciente.', $render);
+        $this->assertStringContainsString('Evolución Favorable / Normal', $render);
+        $this->assertStringContainsString('Ver informe online', $render);
+        $this->assertStringNotContainsString('listo para retirar', $render);
     }
 
     public function test_no_envia_si_el_paciente_no_tiene_email(): void
@@ -108,6 +117,8 @@ class EnviarAvisoTest extends TestCase
         $estudio->forceFill([
             'medico_id' => $this->crearUsuario('medico')->id,
             'informe' => 'Informe de prueba.',
+            'informe_paciente' => 'Explicación de prueba para el paciente.',
+            'semaforo_salud' => \App\Enums\SemaforoSalud::Favorable,
             'firmado_at' => now(),
         ])->save();
 

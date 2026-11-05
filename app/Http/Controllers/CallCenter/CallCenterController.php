@@ -36,9 +36,8 @@ class CallCenterController extends Controller
     }
 
     /**
-     * Envía al paciente un correo avisándole que su informe ya está listo
-     * para retirar. El correo no incluye el contenido clínico del informe:
-     * solo confirma que puede pasar a buscarlo.
+     * Envía al paciente un correo con el informe médico completo ya firmado,
+     * para que pueda leerlo y descargarlo sin tener que concurrir al hospital.
      */
     public function enviarAviso(Request $request, int $id): RedirectResponse
     {
@@ -51,7 +50,7 @@ class CallCenterController extends Controller
         $email = trim((string) $estudio->paciente_email);
 
         if ($email === '' || ! filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            return back()->with('error', 'El paciente no tiene un email válido cargado. Actualizá el contacto antes de enviar el aviso.');
+            return back()->with('error', 'El paciente no tiene un email válido cargado. Actualizá el contacto antes de enviar el informe.');
         }
 
         try {
@@ -69,7 +68,7 @@ class CallCenterController extends Controller
 
         return back()->with(
             'success',
-            "Aviso enviado por correo a {$estudio->paciente_nombre} ({$email})."
+            "Informe enviado por correo a {$estudio->paciente_nombre} ({$email})."
         );
     }
 }

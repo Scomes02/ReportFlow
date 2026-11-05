@@ -96,24 +96,6 @@ class RrhhController extends Controller
     }
 
     /**
-     * Informes de un médico específico (listado paginado, por nombre)
-     */
-    public function informesMedico(string $nombre): View
-    {
-        $medico = User::where('name', $nombre)
-            ->where('role', 'medico')
-            ->firstOrFail();
-
-        $informes = Estudio::with(['tipoEstudio', 'tipoEstudio.especialidad'])
-            ->where('medico_id', $medico->id)
-            ->where('estado', 'informado')
-            ->latest('firmado_at')
-            ->paginate(15);
-
-        return view('rrhh.informes-medico', compact('medico', 'informes'));
-    }
-
-    /**
      * Resumen de un médico: cuántos informes firmó en total y por mes.
      * No maneja ningún monto ni arancel -RRHH acá solo audita volumen
      * de trabajo, la liquidación de honorarios no forma parte del sistema.

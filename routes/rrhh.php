@@ -15,6 +15,15 @@ Route::get('/medicos/{especialidad}', [RrhhController::class, 'medicos'])->name(
 // Listado paginado de todos los informes de un médico (por nombre)
 Route::get('/medico/{nombre}/informes', [RrhhController::class, 'informesMedico'])->name('informes.medico');
 
+// Listado paginado de todos los informes de un médico (por nombre)
+Route::get('/medico/{nombre}/informes', [RrhhController::class, 'informesMedico'])->name('informes.medico');
+
+// Listado paginado de todos los informes de un médico (por nombre)
+Route::get('/medico/{nombre}/informes', [RrhhController::class, 'informesMedico'])->name('informes.medico');
+
+// Listado paginado de todos los informes de un médico (por nombre)
+Route::get('/medico/{nombre}/informes', [RrhhController::class, 'informesMedico'])->name('informes.medico');
+
 // Resumen de un médico: cuántos informes hizo, agrupados por mes (sin montos)
 Route::get('/medicos/{medicoId}/resumen', [RrhhController::class, 'resumenInformesMedico'])->name('medicos.resumen');
 
