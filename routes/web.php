@@ -21,6 +21,10 @@ Route::get('/', function () {
     return redirect('/login');
 });
 
+// Portal del Paciente / Entrega de Informe con Semáforo e Historial
+Route::get('/portal/paciente/estudio/{id}', [\App\Http\Controllers\Paciente\PacientePortalController::class, 'verInforme'])
+    ->name('paciente.informe');
+
 /*
 |--------------------------------------------------------------------------
 | Rutas protegidas por autenticación + rol

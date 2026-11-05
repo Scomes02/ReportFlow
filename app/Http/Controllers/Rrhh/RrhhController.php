@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Especialidad;
 use App\Models\Estudio;
 use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class RrhhController extends Controller
@@ -158,41 +160,79 @@ class RrhhController extends Controller
     }
 
     /**
-     * Archivo general de informes
+     * Archivo general de informes filtrados por especialidad y fecha de realización del estudio
      */
-    public function archivoGeneral(): View
+    public function archivoGeneral(Request $request): View
     {
-        $meses = Estudio::where('estado', 'informado')
-            ->selectRaw('DISTINCT DATE_FORMAT(firmado_at, "%Y-%m") as mes')
-            ->orderBy('mes', 'desc')
-            ->pluck('mes')
-            ->toArray();
+        $especialidades = Especialidad::orderBy('nombre')->get();
+
+        $especialidadId = $request->query('especialidad_id');
+        $fechaDesde = $request->query('fecha_desde');
+        $fechaHasta = $request->query('fecha_hasta');
 
         $informes = Estudio::where('estado', 'informado')
-            ->with(['tipoEstudio', 'tipoEstudio.especialidad', 'medico'])
-            ->latest('firmado_at')
-            ->paginate(20);
+            ->with(['tipoEstudio.especialidad', 'medico'])
+            ->when($especialidadId, function ($query, $id) {
+                $query->whereHas('tipoEstudio', function ($subQuery) use ($id) {
+                    $subQuery->where('especialidad_id', $id);
+                });
+            })
+            ->when($fechaDesde, function ($query, $desde) {
+                $query->whereDate('fecha_estudio', '>=', $desde);
+            })
+            ->when($fechaHasta, function ($query, $hasta) {
+                $query->whereDate('fecha_estudio', '<=', $hasta);
+            })
+            ->orderByDesc('fecha_estudio')
+            ->paginate(20)
+            ->withQueryString();
 
-        return view('rrhh.archivo', compact('informes', 'meses'));
+        return view('rrhh.archivo', compact(
+            'informes',
+            'especialidades',
+            'especialidadId',
+            'fechaDesde',
+            'fechaHasta'
+        ));
     }
 
     /**
-     * Informes de un mes específico
+     * Informes de un mes específico de realización del estudio, con filtro opcional por especialidad
      */
-    public function archivoMes(string $mes): View
+    public function archivoMes(Request $request, string $mes): View
     {
+        $expresionMes = DB::connection()->getDriverName() === 'sqlite'
+            ? "strftime('%Y-%m', fecha_estudio)"
+            : "DATE_FORMAT(fecha_estudio, '%Y-%m')";
+
         $meses = Estudio::where('estado', 'informado')
-            ->selectRaw('DISTINCT DATE_FORMAT(firmado_at, "%Y-%m") as mes')
+            ->selectRaw("DISTINCT {$expresionMes} as mes")
             ->orderBy('mes', 'desc')
             ->pluck('mes')
+            ->filter()
             ->toArray();
 
-        $informes = Estudio::where('estado', 'informado')
-            ->whereRaw('DATE_FORMAT(firmado_at, "%Y-%m") = ?', [$mes])
-            ->with(['tipoEstudio', 'tipoEstudio.especialidad', 'medico'])
-            ->latest('firmado_at')
-            ->paginate(20);
+        $especialidades = Especialidad::orderBy('nombre')->get();
+        $especialidadId = $request->query('especialidad_id');
 
-        return view('rrhh.archivo-mes', compact('informes', 'meses', 'mes'));
+        $informes = Estudio::where('estado', 'informado')
+            ->whereRaw("{$expresionMes} = ?", [$mes])
+            ->with(['tipoEstudio.especialidad', 'medico'])
+            ->when($especialidadId, function ($query, $id) {
+                $query->whereHas('tipoEstudio', function ($subQuery) use ($id) {
+                    $subQuery->where('especialidad_id', $id);
+                });
+            })
+            ->orderByDesc('fecha_estudio')
+            ->paginate(20)
+            ->withQueryString();
+
+        return view('rrhh.archivo-mes', compact(
+            'informes',
+            'meses',
+            'mes',
+            'especialidades',
+            'especialidadId'
+        ));
     }
 }

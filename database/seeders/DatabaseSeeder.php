@@ -18,6 +18,9 @@ class DatabaseSeeder extends Seeder
             EspecialidadSeeder::class,   // 8 especialidades + sus tipos de estudio
             TecnicoDePruebaSeeder::class, // usuario técnico de prueba para /dev-login
             EstudioDemoSeeder::class,     // crea médicos/técnicos demo + ~80 estudios realistas
+            DicomEstudiosDemoSeeder::class, // estudios DICOM vinculados a PACS dcm4chee
+            EstudiosEvolutivosDemoSeeder::class, // pacientes con historial evolutivo encadenado y timeline
+            CareMFlowDemoSeeder::class, // casos estrella con TAC cerebral, RMN y Angiografía
         ]);
     }
 }

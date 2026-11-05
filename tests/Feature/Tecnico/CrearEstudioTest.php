@@ -18,7 +18,7 @@ class CrearEstudioTest extends TestCase
     {
 
         // Arrange
-        $tecnico = User::factory()->create();
+        $tecnico = User::factory()->create(['role' => 'tecnico']);
 
 
         $especialidad = Especialidad::create([

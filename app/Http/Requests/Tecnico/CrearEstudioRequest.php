@@ -22,17 +22,20 @@ class CrearEstudioRequest extends FormRequest
             'especialidad_id' => ['required', 'exists:especialidades,id'],
             'tipo_estudio_id' => ['required', 'exists:tipos_estudio,id'],
             'fecha_estudio' => ['required', 'date'],
-            'archivos' => ['required', 'array', 'min:1'],
-            'archivos.*' => ['file', 'mimes:pdf,jpg,jpeg,png', 'max:20480'],
+            'study_instance_uid' => ['nullable', 'string', 'max:255'],
+            'accession_number' => ['nullable', 'string', 'max:64'],
+            'modalidad' => ['nullable', 'string', 'max:16'],
+            'archivos' => ['nullable', 'array', 'required_without:study_instance_uid'],
+            'archivos.*' => ['file', 'mimes:pdf,jpg,jpeg,png,dcm', 'max:51200'],
         ];
     }
 
     public function messages(): array
     {
         return [
-            'archivos.required' => 'Adjuntá al menos un archivo del estudio.',
-            'archivos.*.mimes' => 'Solo se aceptan archivos PDF, JPG o PNG.',
-            'archivos.*.max' => 'Cada archivo no puede superar los 20MB.',
+            'archivos.required_without' => 'Adjuntá al menos un archivo o especificá el StudyInstanceUID de PACS.',
+            'archivos.*.mimes' => 'Solo se aceptan archivos PDF, JPG, PNG o DICOM (.dcm).',
+            'archivos.*.max' => 'Cada archivo no puede superar los 50MB.',
             'paciente_email.email' => 'Ingresá un email válido para el paciente.',
         ];
     }

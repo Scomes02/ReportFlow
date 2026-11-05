@@ -14,9 +14,9 @@ class AlmacenamientoEstudioService
 
     /**
      * @param  array<string, mixed>  $datosEstudio
-     * @param  UploadedFile[]  $archivos
+     * @param  UploadedFile[]|null  $archivos
      */
-    public function crear(array $datosEstudio, array $archivos): Estudio
+    public function crear(array $datosEstudio, ?array $archivos = null): Estudio
     {
         return DB::transaction(function () use ($datosEstudio, $archivos) {
             $estudio = Estudio::create([
@@ -24,8 +24,10 @@ class AlmacenamientoEstudioService
                 'estado' => EstadoEstudio::Nuevo,
             ]);
 
-            foreach ($archivos as $archivo) {
-                $this->adjuntarArchivo($estudio, $archivo);
+            if (!empty($archivos)) {
+                foreach ($archivos as $archivo) {
+                    $this->adjuntarArchivo($estudio, $archivo);
+                }
             }
 
             return $estudio->load('archivos');
