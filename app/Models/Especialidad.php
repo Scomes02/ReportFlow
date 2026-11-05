@@ -34,6 +34,14 @@ class Especialidad extends Model
     }
 
     /**
+     * Médicos asignados a esta especialidad
+     */
+    public function medicos(): HasMany
+    {
+        return $this->hasMany(User::class, 'especialidad_id')->where('role', 'medico');
+    }
+
+    /**
      * Relación con estudios informados a través de tipos_estudio
      * Esta relación usa hasManyThrough para obtener los estudios
      * de una especialidad a través de tipos_estudio

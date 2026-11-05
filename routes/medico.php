@@ -16,7 +16,6 @@ Route::get('/mis-informes', [MedicoController::class, 'misInformes'])->name('mis
 
 // 4. Pantalla dedicada para Informar Estudio (URL: /medico/estudios/{id}/informar)
 Route::get('/estudios/{id}/informar', [MedicoController::class, 'informar'])->name('estudios.informar');
-
 // 5. Procesar y guardar el informe firmado (URL: /medico/estudios/{id}/informar)
 Route::post('/estudios/{id}/informar', [MedicoController::class, 'guardarInforme'])->name('estudios.informar.guardar');
 
@@ -24,15 +23,15 @@ Route::post('/estudios/{id}/informar', [MedicoController::class, 'guardarInforme
 Route::get('/estudios/{id}/archivos/{archivoId}', [MedicoController::class, 'verArchivo'])->name('estudios.archivos.ver');
 Route::get('/estudios/{id}/dicom-viewer', [MedicoController::class, 'dicomViewer'])->name('estudios.dicom.viewer');
 
-// 5. Rechazar Estudio, devolverlo al técnico con un motivo (URL: /medico/estudios/{id}/rechazar)
+// 7. Rechazar Estudio, devolverlo al técnico con un motivo (URL: /medico/estudios/{id}/rechazar)
 Route::post('/estudios/{id}/rechazar', [MedicoController::class, 'rechazarEstudio'])->name('estudios.rechazar');
 
-// 6. Editar Informe (URL: /medico/informes/{id})
+// 8. Editar Informe (URL: /medico/informes/{id})
 Route::put('/informes/{id}', [MedicoController::class, 'updateInforme'])->name('informes.update');
 
-// 7. Añadir Adenda (URL: /medico/estudios/{id}/adendas)
+// 9. Añadir Adenda (URL: /medico/estudios/{id}/adendas)
 Route::post('/estudios/{id}/adendas', [MedicoController::class, 'guardarAdenda'])->name('adendas.store');
 
-// 8. Dictado por voz médico inteligente (Whisper Local)
+// 10. Dictado por voz médico inteligente (Whisper Local)
 Route::post('/dictado/transcribir', [MedicoController::class, 'transcribirDictado'])->name('dictado.transcribir');
 Route::get('/dictado/estado', [MedicoController::class, 'estadoDictado'])->name('dictado.estado');

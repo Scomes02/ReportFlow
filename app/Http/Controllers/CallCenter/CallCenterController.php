@@ -3,10 +3,13 @@
 namespace App\Http\Controllers\CallCenter;
 
 use App\Http\Controllers\Controller;
+use App\Mail\AvisoInformeListo;
 use App\Models\Estudio;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
+use Throwable;
 
 class CallCenterController extends Controller
 {
@@ -33,9 +36,9 @@ class CallCenterController extends Controller
     }
 
     /**
-     * Simula el envío del aviso al paciente (mail/SMS/WhatsApp -no importa
-     * el medio, acá no se conecta a ningún proveedor real). Solo confirma
-     * que el estudio esté cerrado antes de "enviar" nada.
+     * Envía al paciente un correo avisándole que su informe ya está listo
+     * para retirar. El correo no incluye el contenido clínico del informe:
+     * solo confirma que puede pasar a buscarlo.
      */
     public function enviarAviso(Request $request, int $id): RedirectResponse
     {
@@ -45,10 +48,28 @@ class CallCenterController extends Controller
             return back()->with('error', 'Ese informe todavía no está firmado, no se le puede avisar al paciente.');
         }
 
-        // Acá no se envía nada de verdad -es una simulación para la demo.
+        $email = trim((string) $estudio->paciente_email);
+
+        if ($email === '' || ! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return back()->with('error', 'El paciente no tiene un email válido cargado. Actualizá el contacto antes de enviar el aviso.');
+        }
+
+        try {
+            Mail::to($email)->send(new AvisoInformeListo($estudio));
+        } catch (Throwable $e) {
+            report($e);
+
+            return back()->with('error', 'No se pudo enviar el correo. Revisá la configuración de mail e intentá nuevamente.');
+        }
+
+        $estudio->forceFill([
+            'aviso_enviado_at' => now(),
+            'aviso_enviado_por' => $request->user()->id,
+        ])->save();
+
         return back()->with(
             'success',
-            "📨 Aviso simulado enviado a {$estudio->paciente_nombre} ({$estudio->paciente_email}) sobre su estudio de " . ($estudio->tipoEstudio->nombre ?? 'estudio') . '.'
+            "Aviso enviado por correo a {$estudio->paciente_nombre} ({$email})."
         );
     }
 }

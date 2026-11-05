@@ -42,4 +42,19 @@ class UserFactory extends Factory
             'email_verified_at' => null,
         ]);
     }
+
+    public function tecnico(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'tecnico',
+        ]);
+    }
+
+    public function medico(?int $especialidadId = null): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'medico',
+            'especialidad_id' => $especialidadId,
+        ]);
+    }
 }

@@ -9,9 +9,10 @@ use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['name', 'email', 'password', 'role'])]
+#[Fillable(['name', 'email', 'password', 'role', 'especialidad_id'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -36,6 +37,14 @@ class User extends Authenticatable
     // ============================================
 
     /**
+     * Especialidad asignada al médico
+     */
+    public function especialidad(): BelongsTo
+    {
+        return $this->belongsTo(Especialidad::class, 'especialidad_id');
+    }
+
+    /**
      * Estudios donde este usuario es el técnico
      */
     public function estudiosComoTecnico(): HasMany
@@ -49,23 +58,5 @@ class User extends Authenticatable
     public function estudiosComoMedico(): HasMany
     {
         return $this->hasMany(Estudio::class, 'medico_id');
-    }
-
-    /**
-     * Especialidad del médico (si existe la relación)
-     * Nota: Como no tenemos especialidad_id en users, 
-     * obtenemos la especialidad de los estudios que ha firmado
-     */
-    public function especialidad()
-    {
-        // Obtener la especialidad más frecuente de sus estudios informados
-        return $this->hasManyThrough(
-            Especialidad::class,
-            Estudio::class,
-            'medico_id',        // Foreign key en estudios
-            'id',               // Local key en especialidades
-            'id',               // Local key en users
-            'tipo_estudio_id'   // Foreign key en estudios (para unir con tipos_estudio)
-        )->distinct();
     }
 }

@@ -23,15 +23,15 @@ class UsuariosDemoSeeder extends Seeder
     public function run(): array
     {
         $medicos = [
-            ['name' => 'Dr. Juan Pérez', 'email' => 'medico@reportflow.local'], // médico de dev-login
-            ['name' => 'Dra. María García', 'email' => 'maria.garcia@reportflow.local'],
-            ['name' => 'Dra. Lucía Fernández', 'email' => 'lucia.fernandez@reportflow.local'],
-            ['name' => 'Dr. Martín Gómez', 'email' => 'martin.gomez@reportflow.local'],
-            ['name' => 'Dra. Valeria Torres', 'email' => 'valeria.torres@reportflow.local'],
-            ['name' => 'Dr. Jorge Medina', 'email' => 'jorge.medina@reportflow.local'],
-            ['name' => 'Dra. Silvia Paz', 'email' => 'silvia.paz@reportflow.local'],
-            ['name' => 'Dr. Ricardo Silva', 'email' => 'ricardo.silva@reportflow.local'],
-            ['name' => 'Dra. Carolina Ruiz', 'email' => 'carolina.ruiz@reportflow.local'],
+            ['name' => 'Dr. Juan Pérez', 'email' => 'medico@reportflow.local', 'especialidad_slug' => 'cardiologia'], // médico de dev-login
+            ['name' => 'Dra. María García', 'email' => 'maria.garcia@reportflow.local', 'especialidad_slug' => 'cardiologia'],
+            ['name' => 'Dra. Lucía Fernández', 'email' => 'lucia.fernandez@reportflow.local', 'especialidad_slug' => 'neumonologia'],
+            ['name' => 'Dr. Martín Gómez', 'email' => 'martin.gomez@reportflow.local', 'especialidad_slug' => 'neurologia'],
+            ['name' => 'Dra. Valeria Torres', 'email' => 'valeria.torres@reportflow.local', 'especialidad_slug' => 'traumatologia'],
+            ['name' => 'Dr. Jorge Medina', 'email' => 'jorge.medina@reportflow.local', 'especialidad_slug' => 'oftalmologia'],
+            ['name' => 'Dra. Silvia Paz', 'email' => 'silvia.paz@reportflow.local', 'especialidad_slug' => 'gastroenterologia'],
+            ['name' => 'Dr. Ricardo Silva', 'email' => 'ricardo.silva@reportflow.local', 'especialidad_slug' => 'dermatologia'],
+            ['name' => 'Dra. Carolina Ruiz', 'email' => 'carolina.ruiz@reportflow.local', 'especialidad_slug' => 'psiquiatria'],
         ];
 
         $tecnicos = [
@@ -47,16 +47,28 @@ class UsuariosDemoSeeder extends Seeder
         ];
 
         $usuarios = [];
+        $especialidadesPorSlug = \App\Models\Especialidad::pluck('id', 'slug');
 
         foreach ($medicos as $datos) {
-            $usuarios['medicos'][] = User::firstOrCreate(
+            $especialidadId = $especialidadesPorSlug[$datos['especialidad_slug']] ?? null;
+
+            $usuario = User::firstOrCreate(
                 ['email' => $datos['email']],
                 [
                     'name' => $datos['name'],
                     'password' => Hash::make('password'),
                     'role' => 'medico',
+                    'especialidad_id' => $especialidadId,
                 ]
             );
+
+            // Si el usuario ya existía pero no tenía especialidad asignada, la actualizamos
+            if ($especialidadId && ! $usuario->especialidad_id) {
+                $usuario->especialidad_id = $especialidadId;
+                $usuario->save();
+            }
+
+            $usuarios['medicos'][] = $usuario;
         }
 
         foreach ($tecnicos as $datos) {
