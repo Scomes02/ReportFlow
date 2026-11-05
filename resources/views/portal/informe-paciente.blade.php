@@ -85,131 +85,36 @@
 
             <div class="p-8 space-y-8">
 
-                {{-- SECCIÓN 1: SEMÁFORO DE EVOLUCIÓN DEL PACIENTE --}}
-                @php
-                    $semaforo = $estudio->semaforo_salud;
-                    $valorSemaforo = $semaforo?->value ?? ($estudio->semaforo_evolucion ?? 'favorable');
-                    $configEstilos = match($valorSemaforo) {
-                        'favorable', 'verde' => [
-                            'bg' => 'bg-emerald-50',
-                            'border' => 'border-emerald-300',
-                            'badge' => 'bg-emerald-600 text-white',
-                            'icon' => '🟢',
-                            'titulo' => 'Evolución Favorable / Normal',
-                            'desc' => $semaforo?->explicacionPaciente() ?? 'El estudio no muestra alteraciones patológicas significativas o presenta una evolución positiva respecto a estudios anteriores.'
-                        ],
-                        'estable', 'azul' => [
-                            'bg' => 'bg-sky-50',
-                            'border' => 'border-sky-300',
-                            'badge' => 'bg-sky-600 text-white',
-                            'icon' => '🔵',
-                            'titulo' => 'Cuadro Clínico Estable',
-                            'desc' => $semaforo?->explicacionPaciente() ?? 'La condición clínica evaluada se mantiene sin variaciones respecto a los controles anteriores.'
-                        ],
-                        'control_requerido', 'amarillo', 'naranja' => [
-                            'bg' => 'bg-amber-50',
-                            'border' => 'border-amber-300',
-                            'badge' => 'bg-amber-600 text-white',
-                            'icon' => '🟡',
-                            'titulo' => 'Control Periódico Requerido',
-                            'desc' => $semaforo?->explicacionPaciente() ?? 'Se observan hallazgos de evolución intermedia que ameritan un nuevo estudio de control según criterio del especialista.'
-                        ],
-                        'atencion_inmediata', 'rojo' => [
-                            'bg' => 'bg-rose-50',
-                            'border' => 'border-rose-300',
-                            'badge' => 'bg-rose-600 text-white',
-                            'icon' => '🔴',
-                            'titulo' => 'Atención Médica Prioritaria',
-                            'desc' => $semaforo?->explicacionPaciente() ?? 'Se identifican hallazgos prioritarios que requieren seguimiento médico a la brevedad con su especialista de cabecera.'
-                        ],
-                        default => [
-                            'bg' => 'bg-slate-50',
-                            'border' => 'border-slate-300',
-                            'badge' => 'bg-slate-600 text-white',
-                            'icon' => '🩺',
-                            'titulo' => 'Evaluación Médica Registrada',
-                            'desc' => 'Estudio evaluado por el cuerpo médico de la institución.'
-                        ],
-                    };
-                @endphp
-
-                <div class="rounded-2xl border-2 {{ $configEstilos['border'] }} {{ $configEstilos['bg'] }} p-6 space-y-3">
-                    <div class="flex items-center justify-between flex-wrap gap-2">
+                {{-- SECCIÓN 1 (PRINCIPAL): INFORME MÉDICO OFICIAL DE DIAGNÓSTICO --}}
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between border-b-2 border-slate-200 pb-3">
                         <div class="flex items-center gap-2.5">
-                            <span class="text-2xl">{{ $configEstilos['icon'] }}</span>
-                            <h2 class="text-base font-extrabold text-slate-900">{{ $configEstilos['titulo'] }}</h2>
+                            <span class="text-xl">📋</span>
+                            <div>
+                                <h2 class="text-base font-extrabold text-slate-900 uppercase tracking-wide">Informe Médico de Diagnóstico</h2>
+                                <p class="text-[11px] text-slate-500">Documento Oficial de Diagnóstico por Imágenes &bull; Validez Médico-Legal</p>
+                            </div>
                         </div>
-                        <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider {{ $configEstilos['badge'] }}">
-                            Semáforo del Proceso del Paciente
+                        <span class="px-3 py-1 rounded-full text-[10px] font-mono font-bold bg-slate-100 text-slate-700 border border-slate-200 uppercase">
+                            {{ $estudio->modalidad ?? 'CR' }} &bull; {{ $estudio->tipoEstudio->nombre ?? 'Estudio' }}
                         </span>
                     </div>
-                    <p class="text-sm text-slate-700 leading-relaxed font-medium">
-                        {{ $configEstilos['desc'] }}
-                    </p>
-                    @if($estudio->resumen_evolucion)
-                        <div class="mt-3 pt-3 border-t border-slate-200/60 flex items-start gap-2 text-xs text-slate-600">
-                            <span class="font-bold text-slate-800">Nota de Evolución:</span>
-                            <span>{{ $estudio->resumen_evolucion }}</span>
-                        </div>
-                    @endif
-                </div>
 
-                {{-- SECCIÓN 2: LÍNEA DE TIEMPO DEL PACIENTE (HISTORIAL EVOLUTIVO) --}}
-                @if(count($lineaTiempo) > 1)
-                    <div class="space-y-4">
-                        <div class="flex items-center gap-2">
-                            <span class="text-lg">📈</span>
-                            <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wide">Línea de Tiempo del Paciente (Historial Evolutivo)</h2>
-                        </div>
-                        <div class="relative pl-6 space-y-4 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
-                            @foreach($lineaTiempo as $hito)
-                                <div class="relative flex items-start gap-3">
-                                    <div class="absolute -left-6 top-1 w-4 h-4 rounded-full border-2 {{ $hito['es_actual'] ? 'bg-[#003764] border-sky-200 scale-125' : 'bg-white border-slate-300' }}"></div>
-                                    <div class="flex-1 bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs {{ $hito['es_actual'] ? 'ring-2 ring-[#003764]/20 bg-sky-50/30' : '' }}">
-                                        <div class="flex items-center justify-between font-medium">
-                                            <span class="font-bold text-slate-900">{{ $hito['tipo_estudio'] }} ({{ $hito['modalidad'] }})</span>
-                                            <span class="font-mono text-slate-500">{{ $hito['fecha'] }}</span>
-                                        </div>
-                                        <div class="text-[11px] text-slate-500 mt-0.5">
-                                            Especialidad: <strong>{{ $hito['especialidad'] }}</strong> &bull; Estado: <strong>{{ ucfirst($hito['estado']) }}</strong>
-                                        </div>
-                                        @if($hito['informe'])
-                                            <p class="text-[11px] text-slate-600 mt-1.5 italic bg-white p-2 rounded border border-slate-100">
-                                                "{{ \Illuminate\Support\Str::limit($hito['informe'], 120) }}"
-                                            </p>
-                                        @endif
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-                @endif
-
-                {{-- SECCIÓN 3: INFORME MÉDICO OFICIAL TÉCNICO --}}
-                <div class="border-t-2 border-slate-200 pt-6 space-y-4">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2">
-                            <span class="text-lg">📋</span>
-                            <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wide">Informe Médico Oficial</h2>
-                        </div>
-                        <span class="text-[11px] font-mono text-slate-400">Documento Clínico de Diagnóstico</span>
-                    </div>
-
-                    <div class="bg-slate-50 rounded-2xl border border-slate-200 p-6 text-sm text-slate-800 leading-relaxed font-mono whitespace-pre-line">
+                    {{-- Cuerpo del Diagnóstico Formal --}}
+                    <div class="bg-white rounded-2xl border border-slate-300 p-6 sm:p-8 text-sm text-slate-900 leading-relaxed font-mono whitespace-pre-line shadow-xs">
                         {{ $estudio->informe ?? 'Sin texto de informe cargado.' }}
                     </div>
 
                     {{-- Firma Digital del Especialista --}}
-                    <div class="flex justify-end pt-8">
-                        <div class="text-center min-w-[260px] border-t-2 border-slate-800 pt-3">
-                            <div class="text-xs font-bold text-slate-900">{{ $estudio->medico->name ?? 'Dr. Profesional Firmante' }}</div>
-                            <div class="text-[11px] text-slate-500">Médico Especialista &bull; Hospital Universitario (UNCuyo)</div>
+                    <div class="flex justify-end pt-6">
+                        <div class="text-center min-w-[280px] border-t-2 border-slate-800 pt-3">
+                            <div class="text-sm font-bold text-slate-900">{{ $estudio->medico->name ?? 'Dr. Profesional Firmante' }}</div>
+                            <div class="text-[11px] text-slate-600 font-medium">Médico Especialista &bull; Hospital Universitario (UNCuyo)</div>
                             <div class="text-[10px] font-mono text-slate-400 mt-1">
                                 Firmado digitalmente el {{ $estudio->firmado_at?->format('d/m/Y H:i') ?? $estudio->updated_at->format('d/m/Y H:i') }} hs
                             </div>
                         </div>
                     </div>
-
                 </div>
 
             </div>

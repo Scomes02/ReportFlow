@@ -680,7 +680,7 @@
                             <button type="button" @click="pestanaInforme = 'paciente'"
                                     :class="pestanaInforme === 'paciente' ? 'bg-indigo-600 text-white font-bold' : 'text-slate-600 hover:text-slate-900'"
                                     class="px-3 py-1.5 rounded-lg text-xs transition flex items-center gap-1 cursor-pointer">
-                                <span>💛 Para el Paciente</span>
+                                <span>📈 Evolución del Paciente</span>
                                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
                             </button>
                         </div>
@@ -819,50 +819,69 @@
                             </div>
                         </div>
 
+                        {{-- COMPARATIVA TEMPORAL (EVOLUCIÓN) CON DICTADO POR VOZ --}}
                         <div>
-                            <div class="flex items-center justify-between flex-wrap gap-2 mb-1">
+                            <div class="flex items-center justify-between flex-wrap gap-2 mb-1.5">
                                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                                    Explicación Clara para el Paciente
+                                    Comparativa Temporal (Evolución)
                                 </label>
-                                <template x-if="whisperEstado === 'activo'">
-                                    <button type="button" 
-                                            x-show="!dictando && !procesandoAudio" 
-                                            @click="toggleDictado('campoInformePaciente')"
-                                            class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-bold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 transition cursor-pointer"
-                                            title="Dictar explicación para el paciente">
-                                        <span>🎙️ Dictar</span>
-                                    </button>
-                                </template>
+
+                                {{-- HERRAMIENTA DE DICTADO PARA COMPARATIVA TEMPORAL --}}
+                                <div class="flex items-center gap-1.5">
+                                    <template x-if="whisperEstado === 'activo'">
+                                        <div class="flex items-center gap-1.5">
+                                            {{-- Botón iniciar dictado --}}
+                                            <button type="button" 
+                                                    x-show="!dictando && !procesandoAudio" 
+                                                    @click="toggleDictado('campoResumenEvolucion')"
+                                                    class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 transition-all shadow-xs cursor-pointer group"
+                                                    title="Dictar evolución temporal con Whisper Local">
+                                                <svg class="w-3.5 h-3.5 text-indigo-600 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+                                                <span>🎙️ Dictar</span>
+                                                <span class="px-1 py-0.2 rounded text-[9px] font-mono font-bold bg-indigo-200 text-indigo-800">Local AI</span>
+                                            </button>
+
+                                            {{-- Estado grabando --}}
+                                            <div x-show="dictando && campoActivoDictado === 'campoResumenEvolucion'" x-cloak class="flex items-center gap-1.5 bg-rose-50 border border-rose-300 px-2.5 py-1 rounded-lg text-xs font-bold text-rose-700 shadow-sm animate-pulse">
+                                                <span class="w-2.5 h-2.5 rounded-full bg-rose-600 animate-ping"></span>
+                                                <span>Grabando evolución: <span x-text="formatoTiempo(segundosDictado)"></span></span>
+                                                <button type="button" @click="detenerDictado('campoResumenEvolucion')" class="ml-1 bg-rose-600 hover:bg-rose-700 text-white px-2 py-0.5 rounded text-[11px] font-bold transition cursor-pointer">⏹️ Detener</button>
+                                                <button type="button" @click="cancelarDictado()" class="text-rose-400 hover:text-rose-800 ml-1 text-xs cursor-pointer" title="Descartar audio">✕</button>
+                                            </div>
+
+                                            {{-- Estado procesando --}}
+                                            <div x-show="procesandoAudio && campoActivoDictado === 'campoResumenEvolucion'" x-cloak class="flex items-center gap-1.5 bg-amber-50 border border-amber-300 px-2.5 py-1 rounded-lg text-xs font-bold text-amber-800 shadow-sm">
+                                                <svg class="animate-spin h-3.5 w-3.5 text-amber-600" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                                <span>Transcribiendo evolución...</span>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
                             </div>
 
-                            {{-- Estado dictado para paciente --}}
-                            <div x-show="dictando && campoActivoDictado === 'campoInformePaciente'" x-cloak class="flex items-center gap-1.5 bg-rose-50 border border-rose-300 px-2.5 py-1 rounded-lg text-xs font-bold text-rose-700 mb-1.5 animate-pulse">
-                                <span class="w-2.5 h-2.5 rounded-full bg-rose-600 animate-ping"></span>
-                                <span>Grabando para paciente: <span x-text="formatoTiempo(segundosDictado)"></span></span>
-                                <button type="button" @click="detenerDictado('campoInformePaciente')" class="ml-1 bg-rose-600 hover:bg-rose-700 text-white px-2 py-0.5 rounded text-[11px] font-bold transition">⏹️ Detener</button>
-                                <button type="button" @click="cancelarDictado()" class="text-rose-400 hover:text-rose-800 ml-1 text-xs">✕</button>
+                            {{-- Mensajes de estado del dictado --}}
+                            <div x-show="mensajeDictado && campoActivoDictado === 'campoResumenEvolucion'" x-cloak class="text-[11px] text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-lg mb-1.5 flex items-center justify-between shadow-xs">
+                                <span class="flex items-center gap-1.5 font-medium">
+                                    <span>✨</span>
+                                    <span x-text="mensajeDictado"></span>
+                                </span>
+                                <button type="button" @click="mensajeDictado = ''" class="text-emerald-500 hover:text-emerald-800 text-sm font-bold">&times;</button>
                             </div>
-                            <div x-show="procesandoAudio && campoActivoDictado === 'campoInformePaciente'" x-cloak class="flex items-center gap-1.5 bg-amber-50 border border-amber-300 px-2.5 py-1 rounded-lg text-xs font-bold text-amber-800 mb-1.5">
-                                <span>⏳ Transcribiendo explicación para paciente...</span>
-                            </div>
-                            <div x-show="mensajeDictado && campoActivoDictado === 'campoInformePaciente'" x-cloak class="text-[11px] text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded mb-1.5 flex justify-between">
-                                <span x-text="'✨ ' + mensajeDictado"></span>
-                                <button type="button" @click="mensajeDictado = ''">&times;</button>
+                            <div x-show="errorDictado && campoActivoDictado === 'campoResumenEvolucion'" x-cloak class="text-[11px] text-rose-800 bg-rose-50 border border-rose-200 px-3 py-1.5 rounded-lg mb-1.5 flex items-center justify-between shadow-xs">
+                                <span class="flex items-center gap-1.5 font-medium">
+                                    <span>⚠️</span>
+                                    <span x-text="errorDictado"></span>
+                                </span>
+                                <button type="button" @click="errorDictado = null" class="text-rose-500 hover:text-rose-800 text-sm font-bold">&times;</button>
                             </div>
 
-                            <textarea x-ref="campoInformePaciente" name="informe_paciente" rows="4"
-                                      placeholder="Explique el resultado en lenguaje cotidiano y tranquilizador para que el paciente y su familia comprendan su estado sin tecnicismos complejos..."
-                                      class="w-full border border-slate-300 rounded-xl p-3 text-xs text-slate-800 leading-relaxed focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none transition-all shadow-inner">{{ old('informe_paciente', $estudio->informe_paciente) }}</textarea>
-                        </div>
-
-                        <div>
-                            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
-                                Comparativa Temporal (Evolución)
-                            </label>
-                            <input type="text" name="resumen_evolucion"
-                                   placeholder="Ej: Se observa reducción del derrame pleural respecto al control de 2025..."
-                                   value="{{ old('resumen_evolucion', $estudio->resumen_evolucion) }}"
-                                   class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-800 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none transition-all">
+                            <textarea x-ref="campoResumenEvolucion" name="resumen_evolucion" rows="5"
+                                      placeholder="Describa la evolución temporal respecto a estudios previos (ej: Se observa reducción del derrame pleural respecto al control de 2025, sin nuevos focos parenquimatosos ni complicaciones agudas... Puede escribir o usar el botón '🎙️ Dictar')..."
+                                      class="w-full border border-slate-300 rounded-xl p-3.5 text-xs text-slate-800 leading-relaxed focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none transition-all shadow-inner">{{ old('resumen_evolucion', $estudio->resumen_evolucion) }}</textarea>
+                            <p class="text-[11px] text-slate-400 mt-1 flex items-center gap-1">
+                                <svg class="w-3.5 h-3.5 text-indigo-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <span>Resumen comparativo con el historial previo para seguimiento clínico y monitoreo de la patología.</span>
+                            </p>
                         </div>
                     </div>
 
