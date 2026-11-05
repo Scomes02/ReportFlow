@@ -32,3 +32,7 @@ Route::put('/informes/{id}', [MedicoController::class, 'updateInforme'])->name('
 
 // 7. Añadir Adenda (URL: /medico/estudios/{id}/adendas)
 Route::post('/estudios/{id}/adendas', [MedicoController::class, 'guardarAdenda'])->name('adendas.store');
+
+// 8. Dictado por voz médico inteligente (Whisper Local)
+Route::post('/dictado/transcribir', [MedicoController::class, 'transcribirDictado'])->name('dictado.transcribir');
+Route::get('/dictado/estado', [MedicoController::class, 'estadoDictado'])->name('dictado.estado');

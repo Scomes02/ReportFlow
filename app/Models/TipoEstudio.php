@@ -20,6 +20,7 @@ class TipoEstudio extends Model
     protected $fillable = [
         'especialidad_id',
         'nombre',
+        'region_anatomica_defecto',
     ];
 
     public function especialidad(): BelongsTo

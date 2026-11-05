@@ -16,12 +16,12 @@
 
     <!-- Barra de Filtros por Especialidad y Fecha de Realización -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-        <form method="GET" action="{{ route('rrhh.archivo') }}" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 items-end">
+        <form method="GET" action="{{ route('rrhh.archivo') }}" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-end">
             <!-- Selector de Especialidad -->
             <div>
                 <label for="especialidad_id" class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Especialidad</label>
                 <select name="especialidad_id" id="especialidad_id"
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-brandPrimario focus:outline-none bg-white">
+                        class="w-full h-10 border border-gray-300 rounded-lg px-3 text-sm focus:ring-1 focus:ring-brandPrimario focus:outline-none bg-white">
                     <option value="">Todas las especialidades</option>
                     @foreach($especialidades as $esp)
                         <option value="{{ $esp->id }}" {{ (string)$especialidadId === (string)$esp->id ? 'selected' : '' }}>
@@ -35,30 +35,33 @@
             <div>
                 <label for="fecha_desde" class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Realización Desde</label>
                 <input type="date" name="fecha_desde" id="fecha_desde" value="{{ $fechaDesde }}"
-                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-brandPrimario focus:outline-none bg-white">
+                       class="w-full h-10 border border-gray-300 rounded-lg px-3 text-sm focus:ring-1 focus:ring-brandPrimario focus:outline-none bg-white">
             </div>
 
             <!-- Fecha de Realización Hasta -->
             <div>
                 <label for="fecha_hasta" class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Realización Hasta</label>
                 <input type="date" name="fecha_hasta" id="fecha_hasta" value="{{ $fechaHasta }}"
-                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-brandPrimario focus:outline-none bg-white">
+                       class="w-full h-10 border border-gray-300 rounded-lg px-3 text-sm focus:ring-1 focus:ring-brandPrimario focus:outline-none bg-white">
             </div>
 
-            <!-- Botones de Acción -->
-            <div class="flex items-center gap-2">
-                <button type="submit"
-                        class="flex-1 bg-brandPrimario hover:opacity-90 text-white font-bold px-4 py-2 rounded-lg text-xs shadow-sm flex items-center justify-center gap-1.5 transition">
-                    <i class="fas fa-filter text-[11px]"></i>
-                    <span>Filtrar</span>
-                </button>
-                @if($especialidadId || $fechaDesde || $fechaHasta)
-                    <a href="{{ route('rrhh.archivo') }}"
-                       class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-3 py-2 rounded-lg text-xs border border-gray-200 transition"
-                       title="Limpiar filtros">
-                        Limpiar
-                    </a>
-                @endif
+            <!-- Botones de Acción (Disposición inicial en la 4ta columna, con ancho actual de botones y separación) -->
+            <div>
+                <label class="block text-xs font-bold invisible select-none mb-1" aria-hidden="true">&nbsp;</label>
+                <div class="flex items-center gap-4">
+                    <button type="submit"
+                            class="h-10 min-w-[130px] bg-brandPrimario hover:opacity-90 text-white font-bold px-8 rounded-lg text-xs shadow-sm inline-flex items-center justify-center gap-2 transition whitespace-nowrap">
+                        <i class="fas fa-filter text-[11px]"></i>
+                        <span>Filtrar</span>
+                    </button>
+                    @if($especialidadId || $fechaDesde || $fechaHasta)
+                        <a href="{{ route('rrhh.archivo') }}"
+                           class="h-10 min-w-[90px] bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-5 rounded-lg text-xs border border-gray-300 inline-flex items-center justify-center transition whitespace-nowrap"
+                           title="Limpiar filtros">
+                            Limpiar
+                        </a>
+                    @endif
+                </div>
             </div>
         </form>
 

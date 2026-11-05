@@ -235,6 +235,18 @@ class Dcm4cheeService
     }
 
     /**
+     * Obtiene la URL de renderizado estándar DICOMweb WADO-RS del estudio.
+     */
+    public function obtenerUrlRenderDicom(string $studyInstanceUID): ?string
+    {
+        if (! $this->enabled || empty($studyInstanceUID)) {
+            return null;
+        }
+
+        return rtrim($this->dicomwebUrl, '/') . '/studies/' . urlencode($studyInstanceUID) . '/rendered';
+    }
+
+    /**
      * Auxiliar para extraer el valor de un tag DICOM en la estructura JSON estándar de DICOMweb.
      */
     private function extraerValorTag(array $dicomJson, string $tag): ?string

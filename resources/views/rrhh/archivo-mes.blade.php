@@ -22,11 +22,11 @@
 
     <!-- Filtro de Especialidad dentro del Mes -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-        <form method="GET" action="{{ route('rrhh.archivo.mes', $mes) }}" class="flex flex-col sm:flex-row items-end gap-3">
-            <div class="flex-1 w-full sm:w-auto">
-                <label for="especialidad_id" class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Filtrar por Especialidad</label>
+        <form method="GET" action="{{ route('rrhh.archivo.mes', $mes) }}" class="flex flex-col sm:flex-row items-end gap-x-5 gap-y-3">
+            <div class="flex-1 w-full sm:max-w-md">
+                <label for="especialidad_id" class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Filtrar por Especialidad</label>
                 <select name="especialidad_id" id="especialidad_id"
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-brandPrimario focus:outline-none bg-white">
+                        class="w-full h-10 border border-gray-300 rounded-lg px-3.5 text-sm focus:ring-1 focus:ring-brandPrimario focus:outline-none bg-white">
                     <option value="">Todas las especialidades</option>
                     @foreach($especialidades as $esp)
                         <option value="{{ $esp->id }}" {{ (string)$especialidadId === (string)$esp->id ? 'selected' : '' }}>
@@ -35,18 +35,21 @@
                     @endforeach
                 </select>
             </div>
-            <div class="flex items-center gap-2">
-                <button type="submit"
-                        class="bg-brandPrimario hover:opacity-90 text-white font-bold px-4 py-2 rounded-lg text-xs shadow-sm flex items-center gap-1.5 transition">
-                    <i class="fas fa-filter text-[11px]"></i>
-                    <span>Filtrar</span>
-                </button>
-                @if($especialidadId)
-                    <a href="{{ route('rrhh.archivo.mes', $mes) }}"
-                       class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-3 py-2 rounded-lg text-xs border border-gray-200 transition">
-                        Limpiar
-                    </a>
-                @endif
+            <div>
+                <label class="block text-xs font-bold invisible select-none mb-1.5" aria-hidden="true">&nbsp;</label>
+                <div class="flex items-center gap-4">
+                    <button type="submit"
+                            class="h-10 min-w-[130px] bg-brandPrimario hover:opacity-90 text-white font-bold px-8 rounded-lg text-xs shadow-sm inline-flex items-center justify-center gap-2 transition whitespace-nowrap">
+                        <i class="fas fa-filter text-[11px]"></i>
+                        <span>Filtrar</span>
+                    </button>
+                    @if($especialidadId)
+                        <a href="{{ route('rrhh.archivo.mes', $mes) }}"
+                           class="h-10 min-w-[90px] bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-5 rounded-lg text-xs border border-gray-300 inline-flex items-center justify-center transition whitespace-nowrap">
+                            Limpiar
+                        </a>
+                    @endif
+                </div>
             </div>
         </form>
     </div>

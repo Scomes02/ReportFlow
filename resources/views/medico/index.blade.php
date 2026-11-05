@@ -53,22 +53,44 @@
                     @forelse ($estudios as $estudio)
                         <tr class="hover:bg-slate-50/50 transition-colors">
                             <td class="px-4 py-3.5 font-mono text-[11px] text-slate-400">#{{ $estudio->id }}</td>
-                            <td class="px-4 py-3.5 font-bold text-slate-900">{{ $estudio->paciente_nombre }}</td>
+                            <td class="px-4 py-3.5">
+                                <div class="font-bold text-slate-900">{{ $estudio->paciente_nombre }}</div>
+                                <div class="text-[11px] text-slate-500 font-mono mt-0.5">DNI: {{ $estudio->paciente_dni }} &bull; {{ $estudio->paciente_edad }} años</div>
+                                @php $cantPrev = $conteoPreviosPorDni[$estudio->paciente_dni] ?? 0; @endphp
+                                @if($cantPrev > 0)
+                                    <span class="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-sky-50 text-sky-700 border border-sky-200 whitespace-nowrap">
+                                        <svg width="12" height="12" style="width: 12px; height: 12px; min-width: 12px; max-width: 12px; flex-shrink: 0;" class="text-sky-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        <span>{{ $cantPrev }} estudio(s) previo(s)</span>
+                                    </span>
+                                @else
+                                    <span class="text-[10px] text-slate-400 mt-1 block">Primer estudio</span>
+                                @endif
+                            </td>
                             <td class="px-4 py-3.5">
                                 <div class="flex flex-col items-start gap-1">
                                     <span class="font-medium text-slate-800">{{ $estudio->tipoEstudio->nombre ?? 'Estudio' }}</span>
-                                    @if($estudio->tieneDicom())
-                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 whitespace-nowrap" style="font-size: 10px; line-height: 14px;">
-                                            <svg width="12" height="12" viewBox="0 0 20 20" fill="currentColor" style="width: 12px; height: 12px; min-width: 12px; flex-shrink: 0;" class="text-indigo-600">
-                                                <path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4zM3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 00-1 1v2a1 1 0 102 0v-2a1 1 0 00-1-1zm4 0a1 1 0 00-1 1v2a1 1 0 102 0v-2a1 1 0 00-1-1z"/>
-                                            </svg>
-                                            <span>DICOM PACS [{{ $estudio->modalidad ?? 'CR' }}]</span>
-                                        </span>
-                                    @elseif($estudio->archivos->isNotEmpty())
-                                        <span class="inline-flex items-center gap-1 text-[10px] text-slate-500">
-                                            <span>📷 {{ $estudio->archivos->count() }} archivo(s)</span>
-                                        </span>
-                                    @endif
+                                    <div class="flex items-center gap-1.5 flex-wrap">
+                                        @php
+                                            $region = $estudio->region_anatomica_efectiva;
+                                        @endphp
+                                        @if($region)
+                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-600 border border-slate-200 uppercase tracking-wider">
+                                                🎯 {{ $region }}
+                                            </span>
+                                        @endif
+                                        @if($estudio->tieneDicom())
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 whitespace-nowrap" style="font-size: 10px; line-height: 14px;">
+                                                <svg width="12" height="12" viewBox="0 0 20 20" fill="currentColor" style="width: 12px; height: 12px; min-width: 12px; flex-shrink: 0;" class="text-indigo-600">
+                                                    <path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4zM3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 00-1 1v2a1 1 0 102 0v-2a1 1 0 00-1-1zm4 0a1 1 0 00-1 1v2a1 1 0 102 0v-2a1 1 0 00-1-1z"/>
+                                                </svg>
+                                                <span>DICOM PACS [{{ $estudio->modalidad ?? 'CR' }}]</span>
+                                            </span>
+                                        @elseif($estudio->archivos->isNotEmpty())
+                                            <span class="inline-flex items-center gap-1 text-[10px] text-slate-500">
+                                                <span>📷 {{ $estudio->archivos->count() }} archivo(s)</span>
+                                            </span>
+                                        @endif
+                                    </div>
                                 </div>
                             </td>
                             <td class="px-4 py-3.5 text-slate-500">{{ $estudio->fecha_estudio->format('d/m/Y - H:i') }}</td>
@@ -81,7 +103,7 @@
                             <td class="px-4 py-3.5 text-end">
                                 <a href="{{ route('medico.estudios.informar', $estudio->id) }}"
                                    class="inline-flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white px-4 py-1.5 rounded-full text-xs font-semibold tracking-wide shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                    <svg width="14" height="14" style="width: 14px; height: 14px; min-width: 14px; flex-shrink: 0;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                     <span>Informar</span>
                                 </a>
                             </td>
