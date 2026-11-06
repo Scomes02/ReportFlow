@@ -159,6 +159,7 @@
     mediaRecorder: null,
     audioChunks: [],
     whisperEstado: 'verificando',
+    iniciandoServicio: false,
     mensajeDictado: '',
     errorDictado: null,
     campoActivoDictado: 'campoInforme',
@@ -170,6 +171,58 @@
             this.whisperEstado = data.activo ? 'activo' : 'inactivo';
         } catch (e) {
             this.whisperEstado = 'inactivo';
+        }
+    },
+
+    async iniciarServicioWhisper() {
+        if (this.iniciandoServicio) return;
+        this.iniciandoServicio = true;
+        this.errorDictado = null;
+        this.mensajeDictado = 'Iniciando microservicio de IA local Whisper...';
+
+        try {
+            const resp = await fetch('{{ route('medico.dictado.iniciar') }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                }
+            });
+            const data = await resp.json();
+
+            // Polling cada 1.5s durante máximo 25 segundos para esperar que cargue el modelo
+            let intentos = 0;
+            const maxIntentos = 16;
+            const intervalo = setInterval(async () => {
+                intentos++;
+                try {
+                    const check = await fetch('{{ route('medico.dictado.estado') }}');
+                    const checkData = await check.json();
+                    if (checkData.activo) {
+                        clearInterval(intervalo);
+                        this.whisperEstado = 'activo';
+                        this.iniciandoServicio = false;
+                        this.mensajeDictado = '¡Servicio de dictado conectado y listo!';
+                        setTimeout(() => { this.mensajeDictado = ''; }, 4000);
+                        return;
+                    }
+                } catch (err) {
+                    // Sigue esperando arranque
+                }
+
+                if (intentos >= maxIntentos) {
+                    clearInterval(intervalo);
+                    this.iniciandoServicio = false;
+                    if (this.whisperEstado !== 'activo') {
+                        this.errorDictado = 'El servicio tardó más de lo esperado en iniciar. Intente nuevamente.';
+                    }
+                }
+            }, 1500);
+
+        } catch (e) {
+            console.error('Error al encender Whisper:', e);
+            this.iniciandoServicio = false;
+            this.errorDictado = 'No se pudo enviar la orden de inicio al servidor.';
         }
     },
 
@@ -735,23 +788,37 @@
                                 </template>
 
                                 <template x-if="whisperEstado === 'inactivo'">
-                                    <span class="inline-flex items-center gap-1 text-[10px] text-slate-400" title="Inicie servicios/whisper/iniciar_dictado.bat para habilitar dictado">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
-                                        Dictado desconectado
-                                    </span>
+                                    <button type="button" 
+                                            @click="iniciarServicioWhisper()"
+                                            :disabled="iniciandoServicio"
+                                            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 transition-all shadow-xs cursor-pointer group disabled:opacity-60"
+                                            title="Haga clic para encender el servicio de IA de dictado automáticamente sin ir al escritorio">
+                                        <template x-if="!iniciandoServicio">
+                                            <span class="flex items-center gap-1">
+                                                <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                                                <span>⚡ Conectar Dictado</span>
+                                            </span>
+                                        </template>
+                                        <template x-if="iniciandoServicio">
+                                            <span class="flex items-center gap-1">
+                                                <svg class="animate-spin h-3 w-3 text-amber-700" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                                <span>Iniciando IA local...</span>
+                                            </span>
+                                        </template>
+                                    </button>
                                 </template>
                             </div>
                         </div>
 
                         {{-- Mensajes de estado del dictado --}}
-                        <div x-show="mensajeDictado && campoActivoDictado === 'campoInforme'" x-cloak class="text-[11px] text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-lg flex items-center justify-between shadow-xs">
+                        <div x-show="mensajeDictado && (campoActivoDictado === 'campoInforme' || iniciandoServicio)" x-cloak class="text-[11px] text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-lg flex items-center justify-between shadow-xs">
                             <span class="flex items-center gap-1.5 font-medium">
                                 <span>✨</span>
                                 <span x-text="mensajeDictado"></span>
                             </span>
                             <button type="button" @click="mensajeDictado = ''" class="text-emerald-500 hover:text-emerald-800 text-sm font-bold">&times;</button>
                         </div>
-                        <div x-show="errorDictado && campoActivoDictado === 'campoInforme'" x-cloak class="text-[11px] text-rose-800 bg-rose-50 border border-rose-200 px-3 py-1.5 rounded-lg flex items-center justify-between shadow-xs">
+                        <div x-show="errorDictado && (campoActivoDictado === 'campoInforme' || iniciandoServicio)" x-cloak class="text-[11px] text-rose-800 bg-rose-50 border border-rose-200 px-3 py-1.5 rounded-lg flex items-center justify-between shadow-xs">
                             <span class="flex items-center gap-1.5 font-medium">
                                 <span>⚠️</span>
                                 <span x-text="errorDictado"></span>
@@ -856,18 +923,40 @@
                                             </div>
                                         </div>
                                     </template>
+
+                                    {{-- Estado desconectado o iniciando en pestaña 2 --}}
+                                    <template x-if="whisperEstado === 'inactivo'">
+                                        <button type="button" 
+                                                @click="iniciarServicioWhisper()"
+                                                :disabled="iniciandoServicio"
+                                                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 transition-all shadow-xs cursor-pointer group disabled:opacity-60"
+                                                title="Haga clic para encender el servicio de IA de dictado automáticamente sin ir al escritorio">
+                                            <template x-if="!iniciandoServicio">
+                                                <span class="flex items-center gap-1">
+                                                    <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                                                    <span>⚡ Conectar Dictado</span>
+                                                </span>
+                                            </template>
+                                            <template x-if="iniciandoServicio">
+                                                <span class="flex items-center gap-1">
+                                                    <svg class="animate-spin h-3 w-3 text-amber-700" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                                <span>Iniciando IA local...</span>
+                                            </span>
+                                        </template>
+                                    </button>
+                                </template>
                                 </div>
                             </div>
 
                             {{-- Mensajes de estado del dictado --}}
-                            <div x-show="mensajeDictado && campoActivoDictado === 'campoResumenEvolucion'" x-cloak class="text-[11px] text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-lg mb-1.5 flex items-center justify-between shadow-xs">
+                            <div x-show="mensajeDictado && (campoActivoDictado === 'campoResumenEvolucion' || iniciandoServicio)" x-cloak class="text-[11px] text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-lg mb-1.5 flex items-center justify-between shadow-xs">
                                 <span class="flex items-center gap-1.5 font-medium">
                                     <span>✨</span>
                                     <span x-text="mensajeDictado"></span>
                                 </span>
                                 <button type="button" @click="mensajeDictado = ''" class="text-emerald-500 hover:text-emerald-800 text-sm font-bold">&times;</button>
                             </div>
-                            <div x-show="errorDictado && campoActivoDictado === 'campoResumenEvolucion'" x-cloak class="text-[11px] text-rose-800 bg-rose-50 border border-rose-200 px-3 py-1.5 rounded-lg mb-1.5 flex items-center justify-between shadow-xs">
+                            <div x-show="errorDictado && (campoActivoDictado === 'campoResumenEvolucion' || iniciandoServicio)" x-cloak class="text-[11px] text-rose-800 bg-rose-50 border border-rose-200 px-3 py-1.5 rounded-lg mb-1.5 flex items-center justify-between shadow-xs">
                                 <span class="flex items-center gap-1.5 font-medium">
                                     <span>⚠️</span>
                                     <span x-text="errorDictado"></span>

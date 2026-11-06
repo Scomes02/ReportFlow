@@ -418,4 +418,64 @@ class MedicoController extends Controller
 
         return response()->json(['activo' => false]);
     }
+
+    /**
+     * Iniciar el microservicio local de Whisper si está inactivo
+     */
+    public function iniciarServicioDictado(): JsonResponse
+    {
+        $whisperUrl = config('services.whisper.url', 'http://127.0.0.1:8000');
+
+        // 1. Si ya responde, no se necesita volver a levantarlo
+        try {
+            $response = Http::timeout(1)->get("{$whisperUrl}/salud");
+            if ($response->successful()) {
+                return response()->json([
+                    'exito' => true,
+                    'mensaje' => 'El servicio de dictado ya está activo.',
+                    'activo' => true
+                ]);
+            }
+        } catch (\Exception $e) {
+            // Silencioso: está inactivo y procederemos a iniciarlo
+        }
+
+        // 2. Rutas del microservicio y logs
+        $dirWhisper = base_path('servicios' . DIRECTORY_SEPARATOR . 'whisper');
+        $scriptName = 'servidor_dictado.py';
+        $logFile = base_path('servicios' . DIRECTORY_SEPARATOR . 'whisper' . DIRECTORY_SEPARATOR . 'servidor.log');
+
+        if (! file_exists($dirWhisper . DIRECTORY_SEPARATOR . $scriptName)) {
+            return response()->json([
+                'exito' => false,
+                'mensaje' => 'No se encontró el script del microservicio en ' . $dirWhisper,
+                'activo' => false
+            ], 404);
+        }
+
+        // 3. Lanzar en segundo plano sin bloquear la respuesta HTTP
+        if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+            $cmd = sprintf(
+                'start "" /B cmd /c "cd /d "%s" && py %s > "%s" 2>&1"',
+                $dirWhisper,
+                $scriptName,
+                $logFile
+            );
+            pclose(popen($cmd, 'r'));
+        } else {
+            $cmd = sprintf(
+                'cd "%s" && python3 %s > "%s" 2>&1 &',
+                $dirWhisper,
+                $scriptName,
+                $logFile
+            );
+            pclose(popen($cmd, 'r'));
+        }
+
+        return response()->json([
+            'exito' => true,
+            'mensaje' => 'Iniciando el servicio de IA local en segundo plano...',
+            'activo' => false
+        ]);
+    }
 }

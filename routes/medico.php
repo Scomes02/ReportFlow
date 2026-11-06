@@ -35,3 +35,5 @@ Route::post('/estudios/{id}/adendas', [MedicoController::class, 'guardarAdenda']
 // 10. Dictado por voz médico inteligente (Whisper Local)
 Route::post('/dictado/transcribir', [MedicoController::class, 'transcribirDictado'])->name('dictado.transcribir');
 Route::get('/dictado/estado', [MedicoController::class, 'estadoDictado'])->name('dictado.estado');
+Route::post('/dictado/iniciar', [MedicoController::class, 'iniciarServicioDictado'])->name('dictado.iniciar');
+
