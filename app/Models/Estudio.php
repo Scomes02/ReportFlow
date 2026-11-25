@@ -33,6 +33,8 @@ class Estudio extends Model
         'tecnico_id',
         'medico_id',
         'estado',
+        'es_externo',
+        'institucion_origen',
         'informe',
         'semaforo_salud',
         'semaforo_evolucion',
@@ -43,6 +45,7 @@ class Estudio extends Model
 
     protected $casts = [
         'estado' => EstadoEstudio::class,
+        'es_externo' => 'boolean',
         'semaforo_salud' => SemaforoSalud::class,
         'fecha_estudio' => 'datetime',
         'firmado_at' => 'datetime',

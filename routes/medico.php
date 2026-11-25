@@ -22,6 +22,7 @@ Route::post('/estudios/{id}/informar', [MedicoController::class, 'guardarInforme
 // 6. Visualizar archivos adjuntos y visor DICOM
 Route::get('/estudios/{id}/archivos/{archivoId}', [MedicoController::class, 'verArchivo'])->name('estudios.archivos.ver');
 Route::get('/estudios/{id}/dicom-viewer', [MedicoController::class, 'dicomViewer'])->name('estudios.dicom.viewer');
+Route::post('/estudios/{id}/adjuntar-externo', [MedicoController::class, 'adjuntarEstudioExterno'])->name('estudios.adjuntar-externo');
 
 // 7. Rechazar Estudio, devolverlo al técnico con un motivo (URL: /medico/estudios/{id}/rechazar)
 Route::post('/estudios/{id}/rechazar', [MedicoController::class, 'rechazarEstudio'])->name('estudios.rechazar');

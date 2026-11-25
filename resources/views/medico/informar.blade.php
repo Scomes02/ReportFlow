@@ -23,23 +23,34 @@
     $estudioPrevioData = null;
     if ($estudioPrevio) {
         $archivoPrevio = $estudioPrevio->archivos->first();
+        $mime = strtolower($archivoPrevio?->mime_type ?? '');
+        $nomOrig = strtolower($archivoPrevio?->nombre_original ?? '');
+        $pathPrevio = strtolower($archivoPrevio?->path ?? '');
+        $esPdf = $archivoPrevio ? ($mime === 'application/pdf' || str_ends_with($nomOrig, '.pdf') || str_ends_with($pathPrevio, '.pdf')) : false;
+        $esImg = $archivoPrevio ? (str_starts_with($mime, 'image/') || preg_match('/\.(jpg|jpeg|png|webp|bmp)$/i', $nomOrig)) : false;
+
         $estudioPrevioData = [
             'id' => $estudioPrevio->id,
             'fecha' => $estudioPrevio->fecha_estudio->format('d/m/Y - H:i'),
             'fecha_corta' => $estudioPrevio->fecha_estudio->format('d/m/Y'),
             'tipo' => $estudioPrevio->tipoEstudio->nombre ?? 'Estudio Previo',
             'especialidad' => $estudioPrevio->tipoEstudio->especialidad->nombre ?? 'Especialidad',
-            'modalidad' => $estudioPrevio->modalidad ?? 'CR',
+            'modalidad' => $estudioPrevio->modalidad ?? ($esPdf ? 'PDF' : 'CR'),
             'informe' => $estudioPrevio->informe,
             'informe_paciente' => $estudioPrevio->informe_paciente,
             'semaforo' => $estudioPrevio->semaforo_salud?->value ?? 'favorable',
             'url' => $archivoPrevio ? route('medico.estudios.archivos.ver', [$estudioPrevio->id, $archivoPrevio->id]) : null,
-            'es_imagen' => $archivoPrevio ? str_starts_with($archivoPrevio->mime_type ?? '', 'image/') : false,
+            'es_imagen' => $esImg,
+            'es_pdf' => $esPdf,
+            'es_externo' => (bool) $estudioPrevio->es_externo,
+            'institucion_origen' => $estudioPrevio->institucion_origen,
+            'nombre_archivo' => $archivoPrevio?->nombre_original,
         ];
     }
 @endphp
 
 <div x-data="{
+    modalExternoAbierto: false,
     tieneDicom: {{ $estudio->tieneDicom() ? 'true' : 'false' }},
     visorModo: '{{ $estudio->tieneDicom() ? 'dicom' : 'archivos' }}',
     archivos: {{ json_encode($archivosData) }},
@@ -146,7 +157,11 @@
             informe_paciente: item.informe_paciente,
             semaforo: item.semaforo_salud,
             url: item.miniatura_url,
-            es_imagen: true
+            es_imagen: item.es_imagen ?? false,
+            es_pdf: item.es_pdf ?? false,
+            es_externo: item.es_externo ?? false,
+            institucion_origen: item.institucion_origen ?? null,
+            nombre_archivo: item.nombre_archivo ?? null,
         };
         this.modoComparativo = true;
     },
@@ -452,8 +467,9 @@
                             <div class="flex items-center bg-slate-800 p-0.5 rounded-lg text-xs font-bold">
                                 <button type="button" @click="visorModo = 'dicom'" 
                                         :class="visorModo === 'dicom' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'"
-                                        class="px-2.5 py-1 rounded-md transition-colors flex items-center gap-1">
-                                    <span>📡 DICOM PACS</span>
+                                        class="px-2.5 py-1 rounded-md transition-colors flex items-center gap-1"
+                                        title="Visor PACS DICOM">
+                                    <span>📡 Visor PACS DICOM</span>
                                 </button>
                                 @if(count($archivosData) > 0)
                                     <button type="button" @click="visorModo = 'archivos'" 
@@ -563,43 +579,96 @@
                             <div class="w-full h-full relative flex items-center justify-center"
                                  style="position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
                                 
-                                {{-- Cabecera del panel previo con selector rápido --}}
-                                <div class="absolute top-2.5 left-2.5 right-2.5 z-30 flex items-center justify-between pointer-events-none"
+                                {{-- Cabecera del panel previo con identificador y acciones --}}
+                                <div class="absolute top-2.5 left-2.5 right-2.5 z-30 flex items-center justify-between"
                                      style="position: absolute; top: 10px; left: 10px; right: 10px; z-index: 30; display: flex; justify-content: space-between;">
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/90 text-black uppercase tracking-wider">
-                                        ESTUDIO PREVIO: <span x-text="estudioPrevioSeleccionado.fecha_corta"></span>
-                                    </span>
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 text-slate-200 border border-slate-700"
-                                          x-text="estudioPrevioSeleccionado.especialidad + ' (' + estudioPrevioSeleccionado.modalidad + ')'">
-                                    </span>
+                                    <div class="flex items-center gap-1.5 flex-wrap">
+                                        <template x-if="estudioPrevioSeleccionado.es_externo">
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-600 text-white uppercase tracking-wider shadow-sm flex items-center gap-1">
+                                                <span>🏥 EXTERNO:</span>
+                                                <span x-text="estudioPrevioSeleccionado.institucion_origen || 'Aportado por paciente'"></span>
+                                            </span>
+                                        </template>
+                                        <template x-if="!estudioPrevioSeleccionado.es_externo">
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/90 text-black uppercase tracking-wider">
+                                                ESTUDIO PREVIO: <span x-text="estudioPrevioSeleccionado.fecha_corta"></span>
+                                            </span>
+                                        </template>
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 text-slate-200 border border-slate-700"
+                                              x-text="estudioPrevioSeleccionado.especialidad + ' (' + estudioPrevioSeleccionado.modalidad + ')'">
+                                        </span>
+                                    </div>
+
+                                    {{-- Acciones para PDF o archivos externos --}}
+                                    <div class="flex items-center gap-1">
+                                        <template x-if="estudioPrevioSeleccionado.es_pdf && estudioPrevioSeleccionado.url">
+                                            <div class="flex items-center gap-1 pointer-events-auto">
+                                                <a :href="estudioPrevioSeleccionado.url" target="_blank"
+                                                   class="px-2 py-0.5 rounded bg-slate-800/90 hover:bg-slate-700 text-cyan-300 hover:text-white border border-slate-700 text-[10px] font-bold transition flex items-center gap-1 shadow"
+                                                   title="Abrir PDF en pestaña nueva para lectura completa o imprimir">
+                                                    <span>↗ Pestaña</span>
+                                                </a>
+                                                <a :href="estudioPrevioSeleccionado.url" download
+                                                   class="px-2 py-0.5 rounded bg-slate-800/90 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-[10px] font-bold transition flex items-center gap-1 shadow"
+                                                   title="Descargar documento PDF original">
+                                                    <span>⬇ Guardar</span>
+                                                </a>
+                                            </div>
+                                        </template>
+                                    </div>
                                 </div>
 
-                                {{-- Metadatos flotantes del estudio previo --}}
-                                <div x-show="mostrarOverlay" x-cloak
-                                     style="position: absolute; top: 38px; left: 10px; z-index: 20; background: rgba(0,0,0,0.8); color: #fbbf24; padding: 4px 8px; border-radius: 6px; font-family: monospace; font-size: 10px; line-height: 1.3; pointer-events: none; border: 1px solid rgba(251,191,36,0.25);">
-                                    <p class="font-bold text-white" x-text="estudioPrevioSeleccionado.tipo"></p>
-                                    <p x-text="estudioPrevioSeleccionado.fecha"></p>
-                                </div>
+                                {{-- Metadatos flotantes del estudio previo (solo para imágenes) --}}
+                                <template x-if="!estudioPrevioSeleccionado.es_pdf">
+                                    <div>
+                                        <div x-show="mostrarOverlay" x-cloak
+                                             style="position: absolute; top: 38px; left: 10px; z-index: 20; background: rgba(0,0,0,0.8); color: #fbbf24; padding: 4px 8px; border-radius: 6px; font-family: monospace; font-size: 10px; line-height: 1.3; pointer-events: none; border: 1px solid rgba(251,191,36,0.25);">
+                                            <p class="font-bold text-white" x-text="estudioPrevioSeleccionado.tipo"></p>
+                                            <p x-text="estudioPrevioSeleccionado.fecha"></p>
+                                        </div>
 
-                                <div x-show="mostrarOverlay" x-cloak
-                                     style="position: absolute; bottom: 10px; right: 10px; z-index: 20; background: rgba(0,0,0,0.8); color: #94a3b8; padding: 4px 8px; border-radius: 6px; font-family: monospace; font-size: 9px; pointer-events: none; text-align: right; border: 1px solid rgba(148,163,184,0.2);">
-                                    <p class="text-amber-400 font-bold">● Comparativa Histórica</p>
-                                    <p>Zoom: <span x-text="Math.round(zoomPrevio * 100) + '%'"></span></p>
-                                </div>
+                                        <div x-show="mostrarOverlay" x-cloak
+                                             style="position: absolute; bottom: 10px; right: 10px; z-index: 20; background: rgba(0,0,0,0.8); color: #94a3b8; padding: 4px 8px; border-radius: 6px; font-family: monospace; font-size: 9px; pointer-events: none; text-align: right; border: 1px solid rgba(148,163,184,0.2);">
+                                            <p class="text-amber-400 font-bold">● Comparativa Histórica</p>
+                                            <p>Zoom: <span x-text="Math.round(zoomPrevio * 100) + '%'"></span></p>
+                                        </div>
+                                    </div>
+                                </template>
 
-                                {{-- Placa del estudio previo --}}
+                                {{-- Contenido del estudio previo: PDF, Imagen o Ficha --}}
                                 <div class="w-full h-full flex items-center justify-center p-2"
                                      style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; padding: 8px;">
-                                    <template x-if="estudioPrevioSeleccionado.url">
+                                    
+                                    {{-- CASO 1: Es un documento PDF interactivo --}}
+                                    <template x-if="estudioPrevioSeleccionado.es_pdf && estudioPrevioSeleccionado.url">
+                                        <div class="w-full h-full flex flex-col pt-8 pb-1 px-1" style="width: 100%; height: 100%;">
+                                            <iframe :src="estudioPrevioSeleccionado.url"
+                                                    class="w-full h-full bg-white rounded-lg shadow-2xl border border-slate-700"
+                                                    style="width: 100%; height: 100%; min-height: 480px; display: block;"
+                                                    type="application/pdf"
+                                                    title="Visor PDF Comparativo Previo">
+                                            </iframe>
+                                        </div>
+                                    </template>
+
+                                    {{-- CASO 2: Es una imagen diagnóstica con controles de contraste/zoom --}}
+                                    <template x-if="!estudioPrevioSeleccionado.es_pdf && estudioPrevioSeleccionado.url">
                                         <img :src="estudioPrevioSeleccionado.url"
                                              :style="`transform: scale(${zoomPrevio}) rotate(${rotacionPrevio}deg); filter: contrast(${contrastePrevio}%) brightness(${brilloPrevio}%) ${invertidoPrevio ? 'invert(1)' : ''}; transition: filter 0.15s ease, transform 0.15s ease; max-height: 94%; max-width: 94%; width: auto; height: auto; object-fit: contain;`"
                                              class="select-none shadow-2xl rounded"
                                              alt="Placa Comparativa Previa" />
                                     </template>
+
+                                    {{-- CASO 3: Sin archivo directo (solo texto de informe) --}}
                                     <template x-if="!estudioPrevioSeleccionado.url">
-                                        <div class="text-center p-6 text-slate-500">
+                                        <div class="text-center p-6 text-slate-500 max-w-md">
+                                            <span class="text-2xl mb-2 block">📋</span>
                                             <p class="text-sm font-bold text-slate-300" x-text="estudioPrevioSeleccionado.tipo"></p>
-                                            <p class="text-xs text-slate-400 mt-1" x-text="'Informe previo: ' + (estudioPrevioSeleccionado.informe ? estudioPrevioSeleccionado.informe.substring(0, 80) + '...' : 'Sin archivo adjunto')"></p>
+                                            <p class="text-xs text-amber-400 font-mono mt-1" x-text="estudioPrevioSeleccionado.es_externo ? 'Estudio Externo: ' + (estudioPrevioSeleccionado.institucion_origen || 'Aportado') : 'Estudio del Centro'"></p>
+                                            <div class="mt-3 p-3 bg-slate-900 border border-slate-800 rounded-lg text-left">
+                                                <p class="text-[10px] text-slate-400 font-bold uppercase mb-1">Informe Previo:</p>
+                                                <p class="text-xs text-slate-300 font-serif leading-relaxed line-clamp-6" x-text="estudioPrevioSeleccionado.informe || 'Sin transcripción de informe adjunta'"></p>
+                                            </div>
                                         </div>
                                     </template>
                                 </div>
@@ -607,8 +676,13 @@
                         </template>
 
                         <template x-if="!estudioPrevioSeleccionado">
-                            <div class="text-center p-8 text-slate-500">
+                            <div class="text-center p-8 text-slate-500 space-y-3">
                                 <p class="text-xs text-slate-400">Este paciente no registra estudios previos cargados.</p>
+                                <button type="button" @click="modalExternoAbierto = true"
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow transition hover:shadow-md">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                    <span>Cargar Estudio Anterior Aportado por Paciente</span>
+                                </button>
                             </div>
                         </template>
                     </div>
@@ -618,13 +692,22 @@
             {{-- LÍNEA DE TIEMPO DEL PACIENTE (TIMELINE MULTIDISCIPLINARIO HORIZONTAL) --}}
             <div class="bg-white rounded-xl border border-slate-200/80 p-3 shadow-sm">
                 <div class="flex items-center justify-between mb-2">
-                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                        <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        Línea de Tiempo del Paciente (Timeline Clínico)
-                    </h4>
-                    <span class="text-[10px] text-slate-400">
-                        {{ $lineaTiempo->count() }} estudio(s) registrado(s) para este paciente
-                    </span>
+                    <div class="flex items-center gap-2">
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                            <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Línea de Tiempo del Paciente (Timeline Clínico)
+                        </h4>
+                        <span class="text-[10px] text-slate-400">
+                            ({{ $lineaTiempo->count() }} estudio(s) registrado(s))
+                        </span>
+                    </div>
+
+                    {{-- Botón para adjuntar estudio histórico externo traído por el paciente --}}
+                    <button type="button" @click="modalExternoAbierto = true"
+                            class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm transition hover:shadow">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        <span>Aportar Estudio Anterior (PDF / Imagen)</span>
+                    </button>
                 </div>
 
                 {{-- Tira deslizante de estudios del paciente --}}
@@ -637,15 +720,29 @@
                             
                             <div class="flex items-center justify-between mb-1">
                                 <span class="text-[10px] font-mono font-bold text-slate-500">{{ $item['fecha'] }}</span>
-                                @if($item['es_actual'])
-                                    <span class="px-1.5 py-0.2 rounded text-[9px] font-black bg-emerald-600 text-white">ACTUAL</span>
-                                @else
-                                    <span class="text-[10px]">{{ $item['semaforo_icono'] ?? '🟢' }}</span>
-                                @endif
+                                <div class="flex items-center gap-1">
+                                    @if($item['es_actual'])
+                                        <span class="px-1.5 py-0.2 rounded text-[9px] font-black bg-emerald-600 text-white">ACTUAL</span>
+                                    @else
+                                        @if($item['es_externo'])
+                                            <span class="px-1.5 py-0.2 rounded text-[8px] font-black bg-purple-600 text-white shadow-xs" title="Estudio traído por el paciente de otra institución">EXTERNO</span>
+                                        @endif
+                                        @if($item['es_pdf'])
+                                            <span class="px-1 py-0.2 rounded text-[8px] font-bold bg-red-100 text-red-700 border border-red-300 font-mono">PDF</span>
+                                        @endif
+                                        <span class="text-[10px]">{{ $item['semaforo_icono'] ?? '🟢' }}</span>
+                                    @endif
+                                </div>
                             </div>
 
                             <p class="text-xs font-bold text-slate-800 truncate" title="{{ $item['tipo_estudio'] }}">{{ $item['tipo_estudio'] }}</p>
-                            <p class="text-[10px] text-indigo-700 font-semibold">{{ $item['especialidad'] }} · {{ $item['modalidad'] }}</p>
+                            <p class="text-[10px] text-indigo-700 font-semibold truncate">
+                                @if($item['es_externo'] && !empty($item['institucion_origen']))
+                                    <span class="text-purple-700 font-bold">{{ $item['institucion_origen'] }}</span> · {{ $item['modalidad'] }}
+                                @else
+                                    {{ $item['especialidad'] }} · {{ $item['modalidad'] }}
+                                @endif
+                            </p>
 
                             @if(!$item['es_actual'])
                                 <div class="mt-1 pt-1 border-t border-slate-200/60 flex items-center justify-between text-[10px] text-slate-500 group-hover:text-indigo-600">
@@ -1030,6 +1127,157 @@
                     <button type="submit"
                             class="bg-amber-600 hover:bg-amber-700 text-white px-5 py-2 rounded-lg text-xs font-bold shadow-sm transition-all">
                         Confirmar rechazo
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- MODAL PARA CARGAR ESTUDIO EXTERNO / ANTERIOR TRAÍDO POR EL PACIENTE --}}
+    <div x-show="modalExternoAbierto" x-cloak
+         class="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div @click.outside="modalExternoAbierto = false"
+             class="bg-white rounded-2xl shadow-2xl max-w-xl w-full border border-slate-200 overflow-hidden">
+            
+            {{-- Cabecera --}}
+            <div class="bg-gradient-to-r from-indigo-900 via-indigo-800 to-purple-900 px-6 py-4 text-white flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-xl shadow-inner">
+                        🏥
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-base leading-tight">Aportar Estudio Anterior del Paciente</h3>
+                        <p class="text-xs text-indigo-200 mt-0.5">Vincular estudio histórico (PDF, imagen o DICOM) para comparación diagnóstica</p>
+                    </div>
+                </div>
+                <button type="button" @click="modalExternoAbierto = false"
+                        class="text-white/70 hover:text-white p-1 rounded-lg hover:bg-white/10 transition text-lg font-bold">
+                    ✕
+                </button>
+            </div>
+
+            {{-- Formulario --}}
+            <form method="POST" action="{{ route('medico.estudios.adjuntar-externo', $estudio->id) }}"
+                  enctype="multipart/form-data" class="p-6 space-y-4">
+                @csrf
+
+                {{-- Ficha del Paciente (solo lectura) --}}
+                <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-3 flex items-center justify-between text-xs text-slate-700">
+                    <div>
+                        <span class="text-[10px] uppercase font-bold text-slate-400 block">Paciente</span>
+                        <strong class="text-slate-900 text-sm">{{ $estudio->paciente_nombre }}</strong>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-[10px] uppercase font-bold text-slate-400 block">DNI / Edad</span>
+                        <span class="font-mono font-bold text-slate-800">{{ $estudio->paciente_dni }}</span> · {{ $estudio->paciente_edad }} años
+                    </div>
+                </div>
+
+                {{-- Archivo del estudio --}}
+                <div x-data="{ fileName: '', fileType: '' }">
+                    <label class="block text-xs font-bold text-slate-700 mb-1">
+                        Archivo del Estudio Previo <span class="text-red-500">*</span>
+                        <span class="text-[10px] text-slate-400 font-normal">(Informe en PDF, Placa JPG/PNG o DICOM .dcm hasta 50MB)</span>
+                    </label>
+                    <div class="border-2 border-dashed border-indigo-200 hover:border-indigo-400 rounded-xl p-4 text-center bg-indigo-50/30 transition cursor-pointer relative">
+                        <input type="file" name="archivo" required accept=".pdf,.jpg,.jpeg,.png,.webp,.dcm"
+                               @change="fileName = $event.target.files[0]?.name; fileType = $event.target.files[0]?.type;"
+                               class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                        <div class="space-y-1">
+                            <div class="text-2xl">📄</div>
+                            <p class="text-xs font-bold text-indigo-900" x-text="fileName || 'Click o arrastrá el archivo aquí'"></p>
+                            <p class="text-[10px] text-slate-500">
+                                Formatos soportados: <strong class="text-red-600">PDF</strong> (se visualiza nativo en el visor comparativo), JPG, PNG, WEBP o DICOM (.dcm)
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    {{-- Fecha histórica del estudio --}}
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">
+                            Fecha Original del Estudio <span class="text-red-500">*</span>
+                        </label>
+                        <input type="date" name="fecha_estudio" required max="{{ now()->format('Y-m-d') }}"
+                               value="{{ now()->subMonths(6)->format('Y-m-d') }}"
+                               class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none">
+                        <span class="text-[10px] text-slate-400">Fecha en que se realizó originalmente</span>
+                    </div>
+
+                    {{-- Institución de Origen --}}
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">
+                            Institución / Clínica de Origen
+                        </label>
+                        <input type="text" name="institucion_origen" placeholder="Ej: Sanatorio Allende, Privado..."
+                               class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none">
+                        <span class="text-[10px] text-slate-400">Dónde se realizó o si lo trajo el paciente</span>
+                    </div>
+                </div>
+
+                {{-- Tipo de Estudio --}}
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">
+                        Tipo de Estudio / Especialidad <span class="text-red-500">*</span>
+                    </label>
+                    <select name="tipo_estudio_id" required
+                            class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none">
+                        <option value="">Seleccionar tipo de estudio...</option>
+                        @if(isset($tiposEstudio))
+                            @foreach($tiposEstudio as $tipo)
+                                <option value="{{ $tipo->id }}" {{ $tipo->id === $estudio->tipo_estudio_id ? 'selected' : '' }}>
+                                    {{ $tipo->nombre }} ({{ $tipo->especialidad->nombre ?? 'General' }})
+                                </option>
+                            @endforeach
+                        @endif
+                    </select>
+                </div>
+
+                {{-- Conclusión o informe traído por el paciente --}}
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">
+                        Conclusión / Transcripción del Informe Anterior (Opcional)
+                    </label>
+                    <textarea name="informe" rows="3" placeholder="Si el paciente trajo un informe en papel o impreso, podés pegar o resumir los hallazgos principales aquí..."
+                              class="w-full border border-slate-300 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none resize-none"></textarea>
+                </div>
+
+                {{-- Semáforo clínico de este estudio histórico --}}
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">
+                        Estado Clínico / Semáforo de Salud Registrado en ese Estudio
+                    </label>
+                    <div class="grid grid-cols-4 gap-2">
+                        <label class="flex items-center gap-1.5 p-2 rounded-lg border border-slate-200 hover:bg-slate-50 cursor-pointer text-xs">
+                            <input type="radio" name="semaforo_salud" value="favorable" checked class="text-emerald-600 focus:ring-emerald-500">
+                            <span>🟢 Favorable</span>
+                        </label>
+                        <label class="flex items-center gap-1.5 p-2 rounded-lg border border-slate-200 hover:bg-slate-50 cursor-pointer text-xs">
+                            <input type="radio" name="semaforo_salud" value="estable" class="text-amber-500 focus:ring-amber-500">
+                            <span>🟡 Estable</span>
+                        </label>
+                        <label class="flex items-center gap-1.5 p-2 rounded-lg border border-slate-200 hover:bg-slate-50 cursor-pointer text-xs">
+                            <input type="radio" name="semaforo_salud" value="control_requerido" class="text-orange-500 focus:ring-orange-500">
+                            <span>🟠 Control</span>
+                        </label>
+                        <label class="flex items-center gap-1.5 p-2 rounded-lg border border-slate-200 hover:bg-slate-50 cursor-pointer text-xs">
+                            <input type="radio" name="semaforo_salud" value="atencion_inmediata" class="text-red-600 focus:ring-red-500">
+                            <span>🔴 Alerta</span>
+                        </label>
+                    </div>
+                </div>
+
+                {{-- Botones de acción --}}
+                <div class="pt-3 border-t border-slate-200 flex items-center justify-end gap-2">
+                    <button type="button" @click="modalExternoAbierto = false"
+                            class="px-4 py-2 rounded-lg border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-bold transition">
+                        Cancelar
+                    </button>
+                    <button type="submit"
+                            class="px-5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm transition hover:shadow flex items-center gap-1.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        <span>Guardar e Integrar a Comparativa</span>
                     </button>
                 </div>
             </form>
