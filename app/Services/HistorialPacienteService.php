@@ -26,6 +26,29 @@ class HistorialPacienteService
                 $esActual = $estudio->id === $estudioActualId;
                 $primerArchivo = $estudio->archivos->first();
 
+                // Tipo de medio del primer archivo
+                $mime = strtolower($primerArchivo?->mime_type ?? '');
+                $nombreOriginal = strtolower($primerArchivo?->nombre_original ?? '');
+                $path = strtolower($primerArchivo?->path ?? '');
+
+                $esPdf = $primerArchivo ? (
+                    $mime === 'application/pdf' ||
+                    str_ends_with($nombreOriginal, '.pdf') ||
+                    str_ends_with($path, '.pdf')
+                ) : false;
+
+                $esImagen = $primerArchivo ? (
+                    str_starts_with($mime, 'image/') ||
+                    preg_match('/\.(jpg|jpeg|png|webp|bmp|gif)$/i', $nombreOriginal) ||
+                    preg_match('/\.(jpg|jpeg|png|webp|bmp|gif)$/i', $path)
+                ) : false;
+
+                $esDicom = $primerArchivo ? (
+                    $mime === 'application/dicom' ||
+                    str_ends_with($nombreOriginal, '.dcm') ||
+                    str_ends_with($path, '.dcm')
+                ) : false;
+
                 // Semáforo de evolución / salud
                 $semaforo = $estudio->semaforo_salud;
                 $semaforoValor = $semaforo?->value ?? ($estudio->semaforo_evolucion ?? 'favorable');
@@ -36,6 +59,8 @@ class HistorialPacienteService
                 return [
                     'id' => $estudio->id,
                     'es_actual' => $esActual,
+                    'es_externo' => (bool) $estudio->es_externo,
+                    'institucion_origen' => $estudio->institucion_origen,
                     'fecha' => $estudio->fecha_estudio->format('d/m/Y'),
                     'fecha_hora' => $estudio->fecha_estudio->format('d/m/Y - H:i'),
                     'fecha_corta' => $estudio->fecha_estudio->format('M Y'),
@@ -43,7 +68,7 @@ class HistorialPacienteService
                     'especialidad_slug' => $estudio->tipoEstudio->especialidad->slug ?? 'general',
                     'tipo_estudio' => $estudio->tipoEstudio->nombre ?? 'Estudio',
                     'region_anatomica' => $estudio->region_anatomica ?? 'general',
-                    'modalidad' => $estudio->modalidad ?? 'CR',
+                    'modalidad' => $estudio->modalidad ?? ($esPdf ? 'PDF' : 'CR'),
                     'estado' => $estudio->estado->value,
                     'estado_label' => $estudio->estado->label(),
                     'semaforo_salud' => $semaforoValor,
@@ -56,6 +81,10 @@ class HistorialPacienteService
                     'tiene_dicom' => $estudio->tieneDicom(),
                     'study_instance_uid' => $estudio->study_instance_uid,
                     'miniatura_url' => $primerArchivo ? route('medico.estudios.archivos.ver', [$estudio->id, $primerArchivo->id]) : null,
+                    'es_pdf' => $esPdf,
+                    'es_imagen' => $esImagen,
+                    'es_dicom' => $esDicom,
+                    'nombre_archivo' => $primerArchivo?->nombre_original,
                     'archivos_count' => $estudio->archivos->count(),
                     'medico_nombre' => $estudio->medico->name ?? null,
                 ];

@@ -38,6 +38,13 @@ class EstudioController extends Controller
             $datos['pacs_status'] = 'ONLINE';
         }
 
+        if ($request->boolean('es_externo')) {
+            $datos['es_externo'] = true;
+            $datos['institucion_origen'] = $request->institucion_origen ?: 'Aportado por paciente';
+            $datos['estado'] = \App\Enums\EstadoEstudio::Informado;
+            $datos['informe'] = 'Estudio previo externo aportado por el paciente.';
+        }
+
         $this->almacenamiento->crear($datos, $request->file('archivos'));
 
         return redirect()

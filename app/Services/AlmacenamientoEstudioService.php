@@ -20,8 +20,8 @@ class AlmacenamientoEstudioService
     {
         return DB::transaction(function () use ($datosEstudio, $archivos) {
             $estudio = Estudio::create([
-                ...$datosEstudio,
                 'estado' => EstadoEstudio::Nuevo,
+                ...$datosEstudio,
             ]);
 
             if (!empty($archivos)) {

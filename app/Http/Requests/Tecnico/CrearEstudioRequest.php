@@ -25,6 +25,8 @@ class CrearEstudioRequest extends FormRequest
             'study_instance_uid' => ['nullable', 'string', 'max:255'],
             'accession_number' => ['nullable', 'string', 'max:64'],
             'modalidad' => ['nullable', 'string', 'max:16'],
+            'es_externo' => ['nullable', 'boolean'],
+            'institucion_origen' => ['nullable', 'string', 'max:150'],
             'archivos' => ['nullable', 'array', 'required_without:study_instance_uid'],
             'archivos.*' => ['file', 'mimes:pdf,jpg,jpeg,png,dcm', 'max:51200'],
         ];

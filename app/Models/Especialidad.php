@@ -23,6 +23,15 @@ class Especialidad extends Model
         'slug',
     ];
 
+    protected static function booted(): void
+    {
+        static::creating(function (Especialidad $especialidad) {
+            if (empty($especialidad->slug) && !empty($especialidad->nombre)) {
+                $especialidad->slug = \Illuminate\Support\Str::slug($especialidad->nombre);
+            }
+        });
+    }
+
     public function tiposEstudio(): HasMany
     {
         return $this->hasMany(TipoEstudio::class);

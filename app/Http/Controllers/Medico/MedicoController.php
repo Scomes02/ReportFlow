@@ -26,6 +26,7 @@ class MedicoController extends Controller
         private readonly \App\Services\EnsambladoClinicoService $ensambladoService,
         private readonly \App\Services\HistorialPacienteService $historialService,
         private readonly \App\Services\CruceMultidisciplinarioService $cruceService,
+        private readonly \App\Services\AlmacenamientoEstudioService $almacenamiento,
     ) {}
 
     /**
@@ -123,6 +124,9 @@ class MedicoController extends Controller
         // Ensamblado clínico de imágenes y evaluación del estado general
         $mosaicoClinico = $this->ensambladoService->obtenerMosaicoYEstadoGeneral($estudio);
 
+        // Tipos de estudio disponibles para adjuntar estudios previos aportados
+        $tiposEstudio = \App\Models\TipoEstudio::with('especialidad')->orderBy('nombre')->get();
+
         return view('medico.informar', compact(
             'estudio',
             'medico',
@@ -134,7 +138,8 @@ class MedicoController extends Controller
             'lineaTiempo',
             'estudioPrevio',
             'cruceMultidisciplinario',
-            'cruceResultados'
+            'cruceResultados',
+            'tiposEstudio'
         ));
     }
 
@@ -305,7 +310,19 @@ class MedicoController extends Controller
         $estudio = Estudio::with('tipoEstudio')->findOrFail($id);
 
         if ($medico->especialidad_id && $estudio->tipoEstudio?->especialidad_id !== $medico->especialidad_id) {
-            abort(403, 'No tiene permisos para acceder a los archivos de este estudio.');
+            // Permitir si es un estudio externo o si el médico atiende a este paciente en algún estudio
+            $tieneAcceso = $estudio->es_externo || Estudio::where('paciente_dni', $estudio->paciente_dni)
+                ->where(function ($q) use ($medico) {
+                    $q->whereNull('medico_id')
+                      ->orWhere('medico_id', $medico->id)
+                      ->orWhereHas('tipoEstudio', function ($sub) use ($medico) {
+                          $sub->where('especialidad_id', $medico->especialidad_id);
+                      });
+                })->exists();
+
+            if (! $tieneAcceso) {
+                abort(403, 'No tiene permisos para acceder a los archivos de este estudio.');
+            }
         }
 
         $archivo = $estudio->archivos()->findOrFail($archivoId);
@@ -477,5 +494,62 @@ class MedicoController extends Controller
             'mensaje' => 'Iniciando el servicio de IA local en segundo plano...',
             'activo' => false
         ]);
+    }
+
+    /**
+     * Adjunta un estudio previo externo traído/aportado por el paciente (PDF, imagen, DICOM)
+     */
+    public function adjuntarEstudioExterno(Request $request, int $id): RedirectResponse
+    {
+        $estudioActual = Estudio::with('tipoEstudio')->findOrFail($id);
+
+        $request->validate([
+            'archivo' => ['required', 'file', 'mimes:pdf,dcm,jpg,jpeg,png,webp', 'max:51200'],
+            'fecha_estudio' => ['required', 'date', 'before_or_equal:today'],
+            'tipo_estudio_id' => ['required', 'exists:tipos_estudio,id'],
+            'institucion_origen' => ['nullable', 'string', 'max:150'],
+            'informe' => ['nullable', 'string', 'max:5000'],
+            'semaforo_salud' => ['nullable', 'string', 'in:favorable,estable,control_requerido,atencion_inmediata,verde,amarillo,naranja,rojo'],
+        ], [
+            'archivo.required' => 'Debe seleccionar un archivo (PDF, DICOM o imagen).',
+            'archivo.mimes' => 'El formato debe ser PDF, DICOM (.dcm), JPG, PNG o WEBP.',
+            'archivo.max' => 'El archivo no puede exceder los 50MB.',
+            'fecha_estudio.before_or_equal' => 'La fecha del estudio histórico no puede ser futura.',
+        ]);
+
+        $tipo = \App\Models\TipoEstudio::with('especialidad')->findOrFail($request->tipo_estudio_id);
+        $file = $request->file('archivo');
+        $ext = strtolower($file->getClientOriginalExtension());
+        $modalidad = match ($ext) {
+            'pdf' => 'PDF',
+            'dcm' => 'DICOM',
+            default => 'CR',
+        };
+
+        $nuevoEstudio = Estudio::create([
+            'paciente_nombre' => $estudioActual->paciente_nombre,
+            'paciente_dni' => $estudioActual->paciente_dni,
+            'paciente_edad' => $estudioActual->paciente_edad,
+            'paciente_telefono' => $estudioActual->paciente_telefono,
+            'paciente_email' => $estudioActual->paciente_email,
+            'tipo_estudio_id' => $tipo->id,
+            'region_anatomica' => $tipo->region_anatomica_defecto ?? $estudioActual->region_anatomica ?? 'general',
+            'modalidad' => $modalidad,
+            'es_externo' => true,
+            'institucion_origen' => $request->institucion_origen ?: 'Aportado por el paciente',
+            'estado' => \App\Enums\EstadoEstudio::Informado,
+            'fecha_estudio' => $request->fecha_estudio,
+            'informe' => $request->informe ?: 'Estudio previo externo aportado por el paciente para comparativa.',
+            'semaforo_salud' => $request->semaforo_salud ?: 'favorable',
+            'medico_id' => auth()->id(),
+            'tecnico_id' => null,
+            'firmado_at' => $request->fecha_estudio,
+        ]);
+
+        $this->almacenamiento->adjuntarArchivo($nuevoEstudio, $file);
+
+        return redirect()
+            ->route('medico.estudios.informar', $id)
+            ->with('status', 'Estudio externo aportado por el paciente registrado con éxito. Se ha integrado a la Línea de Tiempo y al Visor Comparativo.');
     }
 }

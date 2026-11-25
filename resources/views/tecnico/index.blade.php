@@ -31,6 +31,11 @@
                         <td class="px-4 py-3 font-mono text-xs">{{ $estudio->paciente_dni }}</td>
                         <td class="px-4 py-3">
                             <span class="font-medium text-slate-800">{{ $estudio->tipoEstudio->nombre }}</span>
+                            @if ($estudio->es_externo)
+                                <div class="inline-flex items-center gap-1 mt-0.5 px-2 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200 whitespace-nowrap">
+                                    <span>🏥 EXTERNO {{ $estudio->institucion_origen ? '('.$estudio->institucion_origen.')' : '' }}</span>
+                                </div>
+                            @endif
                             @if ($estudio->tieneDicom())
                                 <div class="inline-flex items-center gap-1 mt-0.5 px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 whitespace-nowrap" style="font-size: 10px; line-height: 14px;">
                                     <svg width="12" height="12" viewBox="0 0 20 20" fill="currentColor" style="width: 12px; height: 12px; min-width: 12px; flex-shrink: 0;" class="text-indigo-600">
@@ -219,6 +224,20 @@
                     @error('archivos')
                         <p class="text-xs text-red-600">{{ $message }}</p>
                     @enderror
+                </div>
+
+                {{-- Estudio Externo Aportado por el Paciente --}}
+                <div class="border border-purple-200 bg-purple-50/50 rounded-xl p-3 space-y-2" x-data="{ esExterno: false }">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" name="es_externo" value="1" x-model="esExterno" class="rounded text-purple-600 focus:ring-purple-500">
+                        <span class="text-xs font-bold text-purple-900">¿Es un estudio previo aportado por el paciente?</span>
+                    </label>
+                    <div x-show="esExterno" x-cloak class="space-y-1.5 pt-1">
+                        <label class="block text-[11px] font-bold text-purple-800">Institución / Centro médico de origen</label>
+                        <input type="text" name="institucion_origen" placeholder="Ej: Sanatorio Allende, Hospital Privado, Clínica Vélez..."
+                               class="w-full border border-purple-300 rounded-lg px-2.5 py-1.5 text-xs bg-white focus:ring-1 focus:ring-purple-500 focus:outline-none">
+                        <p class="text-[10px] text-purple-700">Se registrará como antecedente histórico en la Línea de Tiempo del paciente para que el médico pueda compararlo directamente.</p>
+                    </div>
                 </div>
 
                 <div class="flex justify-end pt-2">
