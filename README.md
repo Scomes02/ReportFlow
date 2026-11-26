@@ -4,13 +4,16 @@
 
 # ReportFlow
 
-### Plataforma Integrada de Diagnóstico — Hospital Universitario (UNCuyo)
+### Plataforma Integrada de Diagnóstico Médico, Visor Dual e Inteligencia Clínica
+**Hospital Universitario — Universidad Nacional de Cuyo**
 
-[![Laravel](https://img.shields.io/badge/Laravel-13.x-FF2D20?style=flat-square&logo=laravel)](https://laravel.com)
-[![PHP](https://img.shields.io/badge/PHP-8.5-777BB4?style=flat-square&logo=php)](https://www.php.net)
+[![Laravel](https://img.shields.io/badge/Laravel-11.x%20%2F%2013.x-FF2D20?style=flat-square&logo=laravel)](https://laravel.com)
+[![PHP](https://img.shields.io/badge/PHP-8.3%2B-777BB4?style=flat-square&logo=php)](https://www.php.net)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=flat-square&logo=mysql&logoColor=white)](https://www.mysql.com)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white)](https://tailwindcss.com)
 [![Alpine.js](https://img.shields.io/badge/Alpine.js-3-8BC0D0?style=flat-square&logo=alpine.js&logoColor=black)](https://alpinejs.dev)
+[![DICOM](https://img.shields.io/badge/DICOM-dcm4chee--arc--light-4F46E5?style=flat-square)](https://www.dcm4che.org/)
+[![AI Whisper](https://img.shields.io/badge/AI-Whisper%20Local%20(On--Premise)-10B981?style=flat-square)](https://openai.com/research/whisper)
 [![License](https://img.shields.io/badge/Uso-Académico%2FInstitucional-lightgrey?style=flat-square)]()
 
 </div>
@@ -19,128 +22,220 @@
 
 ## 📋 Descripción del proyecto
 
-**ReportFlow** es un sistema web desarrollado para el **Hospital Universitario** que digitaliza y ordena el circuito completo de un estudio médico: desde que un técnico lo carga, pasando por la redacción y firma del informe por parte del médico especialista, hasta la auditoría de Recursos Humanos y la confirmación al paciente de que su informe está listo para retirar.
+**ReportFlow** es una plataforma web hospitalaria integral diseñada para el **Hospital Universitario (UNCuyo)** que digitaliza, acelera y humaniza el circuito completo del diagnóstico por imágenes y estudios complementarios. 
 
-El proyecto nace como trabajo integrador de un equipo de seis desarrolladores, y evolucionó desde un prototipo estático (HTML/JS) hacia una aplicación Laravel completa, con roles diferenciados, control de acceso, y una identidad visual que respeta el manual de marca oficial de la institución.
+El sistema conecta de punta a punta a los diferentes actores del ecosistema hospitalario:
+1. **El Técnico en Radiología / Diagnóstico**, que carga placas, vincula estudios a servidores PACS DICOM y digitaliza antecedentes externos.
+2. **El Médico Especialista**, que cuenta con una estación de diagnóstico equipada con **Visor Comparativo Dual 1x2**, visualizador de **PDFs interactivo**, correlación de antecedentes longitudinales y **dictado médico por voz con IA on-premise**.
+3. **El Paciente**, que accede a un **Portal de Salud** con un informe explicativo comprensible acompañado de semáforos evolutivos.
+4. **Recursos Humanos y Auditoría**, que monitorean la productividad y volumen por especialidad sin comprometer la privacidad médica.
+5. **Call Center**, que gestiona la comunicación y retiro de informes de forma segura.
 
-## 🎯 El problema que resuelve
+---
 
-Antes de ReportFlow, un mismo informe médico pasaba por distintos profesionales sin un circuito ordenado: informes incompletos, estudios derivados a la especialidad equivocada, pérdida de tiempo buscando información dispersa, demoras en las validaciones y falta de trazabilidad sobre en qué estado se encontraba cada trámite.
+## 🎯 El problema clínico que resuelve
 
-ReportFlow ordena ese proceso dándole a cada actor **una vista propia, con exactamente los permisos y la información que necesita** — ni más, ni menos.
+En la práctica médica tradicional:
+- **Diagnóstico fragmentado:** Cuando un paciente asiste con un estudio anterior de otro centro médico (muchas veces en papel, CD o PDF), el médico no cuenta con una herramienta ágil para compararlo sincrónicamente con el estudio del día.
+- **Sobrecarga y fatiga médica:** La redacción manual reiterativa de informes ralentiza la entrega de resultados y consume tiempo valioso de atención clínica.
+- **Incertidumbre del paciente:** Los pacientes suelen recibir documentos cargados de tecnicismos complejos sin una explicación clara de su estado evolutivo.
+- **Silos de información:** No existía una correlación ágil entre antecedentes de distintas especialidades (por ejemplo, hallazgos cardiológicos previos al evaluar una placa pulmonar).
 
-## ✨ Características principales
+**ReportFlow** supera estas barreras proveyendo herramientas avanzadas de interoperabilidad médica y una arquitectura orientada a la experiencia de cada usuario.
+
+---
+
+## ✨ Características principales por módulo
 
 ### 🧪 Módulo Técnico
-- Carga de nuevos estudios con datos del paciente (nombre, DNI, edad, contacto) y archivos adjuntos (PDF/JPG/PNG).
-- Derivación automática a la especialidad y tipo de estudio correspondiente.
-- Historial propio de estudios cargados, con su estado actualizado en tiempo real.
-- Visualización del motivo cuando un médico rechaza un estudio y lo devuelve para corrección.
+- **Carga de nuevos estudios:** Registro de datos del paciente (nombre, DNI, edad, contacto) y archivos médicos locales (PDF, JPG, PNG, DICOM `.dcm` hasta 50MB).
+- **Integración con Servidores PACS (dcm4chee):** Vinculación directa mediante `StudyInstanceUID`, modalidad (`CR`, `CT`, `MR`, `DX`, `US`, `XA`) y `Accession Number`.
+- **Registro de Estudios Previos Externos:** Casilla para registrar estudios históricos traídos por el paciente desde otras clínicas o sanatorios, documentando la institución de procedencia.
+- **Derivación automática:** Asignación inmediata a la especialidad y tipo de estudio correspondiente.
+- **Trazabilidad:** Historial de estudios subidos con seguimiento de estados y visualización de motivos de rechazo cuando un médico solicita rehacer una toma.
 
-### 🩺 Módulo Médico
-- Worklist de estudios pendientes de informar, filtrado por especialidad.
-- Redacción y firma digital del informe.
-- **Ventana de edición de 24 horas**: un informe firmado puede modificarse libremente durante 24hs; pasado ese plazo, solo admite **adendas** (comentarios anexos), preservando la integridad del informe original.
-- Flujo de **rechazo ("Rehacer")**: el médico puede devolver un estudio al técnico con un comentario obligatorio explicando qué corregir.
+---
 
-### 📊 Módulo RRHH / Administración
-- Panel general con el volumen de estudios por estado (nuevo, informado, rechazado).
-- Auditoría por especialidad y por médico: **cantidad de informes realizados**, sin manejo de aranceles ni montos — el sistema audita volumen de trabajo, no liquidaciones.
-- Archivo general de informes firmados, navegable por período (mes/año).
+### 🩺 Módulo Médico — Centro de Diagnóstico Avanzado
+- **Worklist Especializada:** Bandeja de estudios pendientes filtrada automáticamente según la especialidad del médico autenticado.
+- **Visor Comparativo Dual Lado a Lado (1x2):**
+  - Panel izquierdo: Estudio actual del paciente.
+  - Panel derecho: Estudio previo comparativo seleccionado.
+  - **Herramientas diagnósticas:** Manipulación de Ventana y Nivel W/L con presets (*Hueso*, *Pulmón*, *Tejido blando*, *Invertir*), regla milimétrica digital calibrada, rotación 90°, zoom sincronizado y restablecimiento 1:1.
+- **Gestión Nativa de Estudios Externos en PDF:**
+  - Si el antecedente traído por el paciente es un PDF (informe o digitalización previa), el visor comparativo incrusta un **lector PDF interactivo** lado a lado.
+  - Acciones directas para **abrir en pestaña completa** (ideal para imprimir) o **descargar el archivo original**.
+  - Botón directo `[➕ Aportar Estudio Anterior]` para adjuntar antecedentes históricos en cualquier momento durante la consulta.
+- **Línea de Tiempo Clínica Longitudinal (Timeline):**
+  - Tira interactiva deslizante con todos los estudios históricos del paciente.
+  - Distintivos visuales por modalidad, etiqueta `ACTUAL`, carteles `🏥 EXTERNO: [Institución]`, badges `PDF` y semáforos de salud previos.
+- **Dictado por Voz Inteligente con IA On-Premise (Whisper Local):**
+  - Reconocimiento de voz médico en tiempo real sin salir de la pantalla de informe.
+  - **100% On-Premise:** Utiliza un microservicio en Python con el modelo Whisper de OpenAI ejecutado en el servidor local.
+  - **Máxima privacidad y confidencialidad:** Cumple con la normativa de protección de datos de salud y secreto médico (cero envío de audios a internet y sin costos de consumo de APIs).
+  - Encendido automático en segundo plano desde la interfaz con botón `⚡ Conectar Dictado`.
+- **Modelo de Informe Dual:**
+  - **Pestaña 1 (Informe Médico Formal):** Diagnóstico técnico-legal destinado a especialistas y médicos derivantes.
+  - **Pestaña 2 (Evolución del Paciente):** Explicación clara y accesible para el paciente, acompañada por un **Semáforo de Salud** de 4 estados:
+    - 🟢 *Favorable / Normal* (Sin hallazgos de alarma).
+    - 🔵 *Estable sin cambios* (Evolución controlada idéntica a previos).
+    - 🟡 *Control Periódico* (Seguimiento recomendado a 3/6 meses).
+    - 🔴 *Atención Inmediata* (Hallazgo prioritario para consulta médica urgente).
+- **Cruce Multidisciplinario y Mosaico Clínico:** Detección de estudios previos en otras especialidades y evaluación del estado general del paciente.
+- **Ventana de edición de 24 horas y Adendas:** Posibilidad de corregir el informe durante las primeras 24hs posteriores a la firma; luego de ese plazo, se garantiza la inmutabilidad legal mediante el registro de **adendas** anexas.
+- **Flujo de Rechazo ("Rehacer"):** Devolución fundada al técnico con motivo obligatorio para subsanar errores en la captura de imágenes.
+
+---
+
+### 👤 Módulo Paciente — Portal de Salud Digital
+- **Acceso web seguro:** Acceso directo al informe firmado (`/portal/paciente/estudio/{id}`).
+- **Comprensión clínica:** El paciente visualiza su diagnóstico simplificado y el semáforo evolutivo de su salud.
+- **Impresión / Exportación:** Vista optimizada para impresión y descarga en PDF con membrete del Hospital Universitario.
+
+---
+
+### 📊 Módulo RRHH / Auditoría
+- **Tablero de control:** Indicadores de volumen total por estado (*Nuevo*, *Informado*, *Rechazado*).
+- **Auditoría médica por especialidad y profesional:** Métricas sobre cantidad de informes realizados en el período.
+- **Archivo General Histórico:** Búsqueda y navegación de informes firmados organizados por mes y año.
+
+---
 
 ### 📞 Módulo Call Center
-- Acceso de solo lectura a los informes **ya cerrados** (firmados), buscables por DNI del paciente.
-- Acceso a los datos de contacto del paciente y al estado del trámite, **sin visibilidad sobre el contenido clínico** del informe.
-- Simulación del aviso de entrega al paciente.
+- **Búsqueda por DNI:** Consulta del estado del trámite en tiempo real para informar al paciente sobre la disponibilidad de su estudio.
+- **Aislamiento de privacidad:** Acceso al estado de entrega y datos de contacto **sin visibilidad sobre los informes clínicos confidenciales**.
+- **Registro de aviso:** Confirmación y registro de notificación enviada al paciente.
 
-### 🔐 Seguridad y control de acceso
-- Autenticación por usuario y contraseña, con roles bien definidos (Técnico, Médico, RRHH, Call Center).
-- Middleware de autorización por rol: cada módulo está aislado — un usuario nunca accede a rutas de un rol que no es el suyo, y es redirigido de forma explícita a su propio panel si lo intenta.
+---
 
 ## 🏗️ Arquitectura y stack tecnológico
 
-El proyecto sigue el patrón **MVC** provisto por Laravel, con una separación clara de responsabilidades:
+El sistema está desarrollado bajo el patrón **MVC** con arquitectura de servicios desacoplados y microservicios locales:
 
-| Capa | Tecnología | Uso |
+| Componente | Tecnología | Rol en la arquitectura |
 |---|---|---|
-| Backend | **PHP 8.5** + **Laravel** | Framework MVC: rutas, controladores, modelos, validaciones, autorización |
-| Base de datos | **MySQL 8** | Persistencia relacional (especialidades, estudios, adendas, usuarios) |
-| Frontend | **Blade** + **Tailwind CSS** | Vistas del lado del servidor con estilos utilitarios |
-| Interactividad | **Alpine.js** | Modales, pestañas y componentes dinámicos sin recargar la página |
-| Build tool | **Vite** | Compilación y recarga en caliente de CSS/JS |
-| Control de versiones | **Git** + **GitHub** | Desarrollo en ramas por módulo, integradas sobre `dev` |
+| **Backend Principal** | **PHP 8.3+** & **Laravel 11/13** | Lógica de negocio, controladores, modelos Eloquent, migraciones y autorización |
+| **Base de Datos** | **MySQL 8.0** | Persistencia relacional de estudios, archivos, especialidades y auditoría |
+| **Frontend & UI** | **Blade** + **Tailwind CSS** + **Alpine.js** | Vistas dinámicas reactivas, visores clínicos, toolbars y componentes modales |
+| **Microservicio de IA** | **Python 3** + **Flask** + **OpenAI Whisper** | Transcripción médica local on-premise para dictado por voz privado |
+| **Servidor PACS** | **dcm4chee-arc-light** | Servidor de imágenes médicas DICOM, DICOMweb (WADO-RS) y visor OHIF |
+| **Almacenamiento** | **Laravel Storage Disks** | Almacenamiento seguro y respuesta `inline` controlada de archivos y PDFs |
 
-### Decisiones de diseño destacadas
-
-- **Roles y estados como Enums de PHP** (`RolUsuario`, `EstadoEstudio`), no como strings sueltos en la base — evita errores de tipeo y centraliza el comportamiento (etiquetas, colores de badge) en un solo lugar.
-- **Especialidades y tipos de estudio como tablas**, no como valores fijos en código — el hospital puede sumar nuevas especialidades sin necesidad de un despliegue.
-- **Middleware de rol dedicado** (`EnsureUserHasRole`), que aísla cada módulo y redirige con un mensaje explícito ante un acceso indebido.
-- **Transacciones atómicas** al crear un estudio con sus archivos adjuntos, para que una falla a mitad de camino no deje datos inconsistentes.
-
-## 🎨 Identidad visual
-
-La interfaz respeta estrictamente el manual de marca del Hospital Universitario:
-
-| Color | Uso | Hex |
-|---|---|---|
-| 🟦 Azul institucional | Color primario (headers, botones principales) | `#003764` |
-| ⬜ Gris texto | Texto secundario | `#59595B` |
-| 🟨 Dorado | Color de acento (acciones secundarias) | `#C7A36E` |
-
-**Tipografía:** [Montserrat](https://fonts.google.com/specimen/Montserrat), aplicada en toda la interfaz.
+---
 
 ## 📁 Estructura del proyecto
+
 ```
-app/
-├── Enums/ # RolUsuario, EstadoEstudio
-├── Http/
-│ ├── Controllers/ # Auth, Tecnico, Medico, Rrhh, CallCenter
-│ ├── Middleware/ # EnsureUserHasRole
-│ └── Requests/ # Validaciones (Form Requests)
-├── Models/ # User, Estudio, Especialidad, TipoEstudio, ArchivoEstudio, Adenda
-└── Services/ # AlmacenamientoEstudioService (lógica de carga transaccional)
-
-database/
-├── migrations/ # Esquema completo, incremental
-└── seeders/ # Datos de demostración realistas
-
-resources/views/
-├── layouts/ # Layout compartido (sidebar + header)
-├── components/ # Sidebar y menú de usuario, sensibles al rol
-├── auth/ # Login
-├── tecnico/ · medico/ · rrhh/ · callcenter/ # Vistas por módulo
-
-routes/
-├── web.php # Autenticación + agrupación de módulos por rol
-├── tecnico.php · medico.php · rrhh.php · callcenter.php
+ReportFlow/
+├── app/
+│   ├── Enums/                     # RolUsuario, EstadoEstudio, SemaforoSalud
+│   ├── Http/
+│   │   ├── Controllers/           # Auth, Tecnico, Medico, Paciente, Rrhh, CallCenter
+│   │   ├── Middleware/            # EnsureUserHasRole
+│   │   └── Requests/              # Validaciones tipadas (CrearEstudioRequest, etc.)
+│   ├── Models/                    # Estudio, ArchivoEstudio, Especialidad, TipoEstudio, User, Adenda
+│   └── Services/                  # Lógica de Negocio Especializada
+│       ├── AlmacenamientoEstudioService.php    # Transacciones y subida de archivos/PDFs
+│       ├── HistorialPacienteService.php        # Línea de tiempo y comparativa de estudios
+│       ├── Dcm4cheeService.php                 # Conexión y consulta a servidor PACS DICOM
+│       ├── CruceMultidisciplinarioService.php  # Correlación entre especialidades
+│       └── EnsambladoClinicoService.php        # Mosaico clínico y estado basal
+│
+├── database/
+│   ├── migrations/                # Esquema de base de datos evolutivo
+│   └── seeders/                   # Datos clínicos de prueba realistas
+│
+├── recursos/views/
+│   ├── layouts/                   # Master layout con branding institucional
+│   ├── medico/                    # Visor dual, editor de informe, línea de tiempo, worklist
+│   ├── tecnico/                   # Formulario con soporte PACS y estudios externos
+│   ├── paciente/                  # Portal de salud con semáforo para el paciente
+│   ├── rrhh/                      # Dashboards y archivo general
+│   └── callcenter/                # Consulta de estado de entrega de estudios
+│
+├── rutas/
+│   ├── web.php                    # Autenticación, portal paciente y dev-logins
+│   ├── medico.php                 # Visor, dictado por voz, firma, adendas y externos
+│   ├── tecnico.php                # Carga y worklist de técnicos
+│   ├── rrhh.php                   # Auditoría y paneles
+│   └── callcenter.php             # Avisos y seguimiento
+│
+└── servicios/
+    └── whisper/                   # Microservicio de IA Local On-Premise
+        ├── servidor_dictado.py    # Servidor Flask receptor de audio y transcriptor
+        ├── iniciar_dictado.bat    # Script de arranque rápido
+        └── servidor.log           # Logs de ejecución del microservicio
 ```
+
+---
+
+## 🧩 Flujo integral del sistema
+
+```mermaid
+flowchart TD
+    subgraph INGESTA["1. Ingesta del Estudio"]
+        T[Técnico en Diagnóstico]
+        P_PACS[(Servidor PACS dcm4chee)]
+        EXT[Estudio Externo del Paciente\nPDF / Imagen]
+        T -->|Carga local o vincula UID| P_PACS
+        T -->|Registra antecedente| EXT
+    end
+
+    subgraph DIAGNOSTICO["2. Diagnóstico Médico Especializado"]
+        M[Médico Especialista]
+        VD["Visor Dual 1x2\nEstudio Actual vs Previo"]
+        PDF["Visor Interactivo PDF\nEstudios Anteriores"]
+        TL["Línea de Tiempo Longitudinal\nHistorial del Paciente"]
+        W["Microservicio Whisper IA\nDictado por Voz Local"]
+        
+        T -->|Derivación automática| M
+        P_PACS & EXT --> VD & PDF
+        TL --> VD
+        M --> W
+        W -->|Transcripción instantánea| M
+    end
+
+    subgraph DECISION["3. Resolución Clínica"]
+        M -->|Rechaza con motivo obligatorio| REH[Rechazado - Rehacer]
+        REH --> T
+        M -->|Firma digital| DUAL["Informe Dual:\n1. Técnico-Legal (Especialistas)\n2. Pedagógico con Semáforo (Paciente)"]
+    end
+
+    subgraph DISTRIBUCION["4. Gestión, Auditoría y Entrega"]
+        DUAL --> RRHH[RRHH: Auditoría y Métricas]
+        DUAL --> CC[Call Center: Aviso de Retiro]
+        DUAL --> PORTAL[Portal del Paciente:\nConsulta, Semáforo y Descarga PDF]
+    end
+```
+
+---
 
 ## 🚀 Instalación y puesta en marcha
 
 ### Requisitos previos
-- PHP 8.2 o superior
-- Composer
-- Node.js y npm
-- MySQL 8
+- **PHP 8.3** o superior con extensiones activas (`pdo_mysql`, `mbstring`, `fileinfo`, `curl`)
+- **Composer**
+- **Node.js** (v18+) y **npm**
+- **MySQL 8.0**
+- *(Opcional para dictado por voz):* **Python 3.10+** con las librerías `openai-whisper` y `flask`.
 
-### Pasos
+### Pasos de instalación
 
 ```bash
 # 1. Clonar el repositorio
 git clone https://github.com/Scomes02/ReportFlow.git
 cd ReportFlow
 
-# 2. Instalar dependencias
+# 2. Instalar dependencias de PHP y JavaScript
 composer install
 npm install
 
-# 3. Configurar el entorno
+# 3. Configurar variables de entorno
 cp .env.example .env
 php artisan key:generate
 ```
 
-Editá tu `.env` con los datos de tu base de datos local:
-
+Configurá tu base de datos en el archivo `.env`:
 ```env
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
@@ -151,42 +246,64 @@ DB_PASSWORD=
 ```
 
 ```bash
-# 4. Migrar y sembrar datos de demostración
+# 4. Ejecutar las migraciones y cargar datos de demostración
 php artisan migrate --seed
 
-# 5. Compilar assets (dejar corriendo en una terminal)
+# 5. Compilar assets frontend (dejar en una terminal)
 npm run dev
 
-# 6. Levantar el servidor (en otra terminal)
+# 6. Iniciar el servidor local de Laravel (en otra terminal)
 php artisan serve
 ```
 
-La aplicación queda disponible en `http://127.0.0.1:8000`.
+La aplicación estará disponible en `http://127.0.0.1:8000`.
+
+---
+
+### 🎙️ Puesta en marcha del Microservicio de Dictado por Voz (Opcional)
+
+Si deseás utilizar el dictado por voz médico inteligente con IA local:
+
+1. Asegurate de tener instaladas las dependencias de Python:
+   ```bash
+   pip install flask flask-cors openai-whisper
+   ```
+2. Podés iniciar el microservicio manualmente ejecutando:
+   ```bash
+   cd servicios/whisper
+   py servidor_dictado.py
+   ```
+   *(O simplemente hacé clic en el botón **"⚡ Conectar Dictado"** dentro de la pantalla de informe médico en ReportFlow, y el sistema lo encenderá automáticamente en segundo plano).*
+
+---
 
 ## 🔑 Roles y credenciales de prueba
 
-El seeder de demostración crea automáticamente un usuario por rol, con contraseña `password` para todos:
+El seeder del sistema genera automáticamente usuarios con la contraseña común `password`:
 
-| Rol | Email |
-|---|---|
-| Técnico | `tecnico.prueba@reportflow.local` |
-| Médico | `medico@reportflow.local` |
-| RRHH / Administración | `rrhh@reportflow.local` |
-| Call Center | `callcenter@reportflow.local` |
+| Rol | Correo electrónico | Responsabilidad principal |
+|---|---|---|
+| **Técnico** | `tecnico.prueba@reportflow.local` | Carga de placas, vinculación PACS y estudios externos |
+| **Médico** | `medico@reportflow.local` | Diagnóstico con visor dual 1x2, dictado por voz e informe dual |
+| **RRHH / Auditoría** | `rrhh@reportflow.local` | Panel de métricas y archivo general de informes |
+| **Call Center** | `callcenter@reportflow.local` | Estado de trámite y aviso de retiro sin acceso clínico |
 
-> Además del médico y técnico principales, el seeder crea 9 médicos y 3 técnicos adicionales, y distribuye alrededor de 80 estudios entre las 8 especialidades del sistema, para que los paneles de RRHH y Call Center tengan datos representativos desde el primer momento.
+> **Acceso al Portal del Paciente:** Cualquier estudio firmado puede ser consultado en `/portal/paciente/estudio/{id}` (por ejemplo, `/portal/paciente/estudio/1`).
 
-## 🧩 Flujo del sistema
+---
 
-```mermaid
-flowchart LR
-    A[Técnico<br/>carga el estudio] --> B{Médico<br/>revisa}
-    B -->|Informa y firma| C[Informado]
-    B -->|Rechaza con motivo| D[Rechazado - Rehacer]
-    D --> A
-    C --> E[RRHH<br/>audita volumen]
-    C --> F[Call Center<br/>confirma entrega al paciente]
-```
+## 🎨 Identidad visual
+
+La interfaz adopta estrictamente el manual de marca y paleta cromática del **Hospital Universitario (UNCuyo)**:
+
+| Color | Denominación | Código Hex | Aplicación |
+|---|---|---|---|
+| 🟦 **Azul Institucional** | Color Primario | `#003764` | Encabezados, barras de navegación y botones principales |
+| 🟨 **Dorado Institucional** | Color de Acento | `#C7A36E` | Badges, focos y acciones secundarias |
+| ⬛ **Slate Dark** | Fondo Diagnóstico | `#020617` | Fondo de alto contraste para el Visor Clínico DICOM / 1x2 |
+| 🔤 **Tipografía** | Montserrat & JetBrains Mono | — | Lectura clínica limpia y códigos monoespaciados |
+
+---
 
 ## 👥 Equipo de desarrollo
 
@@ -197,6 +314,8 @@ flowchart LR
 - **Sebastián Gutierrez** | [![GitHub](https://img.shields.io/badge/GitHub-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/MSebastianGutierrez)
 - **Victor Hugo Peinado** | [![LinkedIn](https://img.shields.io/badge/LinkedIn-0A66C2?style=flat-square&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/victor-peinado1739/) [![GitHub](https://img.shields.io/badge/GitHub-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/vpeinado263)
 
+---
+
 ## 📄 Licencia
 
-Proyecto desarrollado con fines académicos e institucionales para el Hospital Universitario. Uso restringido al equipo de desarrollo y a la institución para la que fue creado.
+Proyecto desarrollado con fines académicos e institucionales para el **Hospital Universitario — Universidad Nacional de Cuyo**. Uso restringido al equipo de desarrollo y a la institución para la que fue creado.
