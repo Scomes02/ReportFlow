@@ -46,7 +46,6 @@
                     <th class="px-4 py-3">Paciente</th>
                     <th class="px-4 py-3">DNI</th>
                     <th class="px-4 py-3">Tipo de Estudio</th>
-                    <th class="px-4 py-3">Evolución (Semáforo)</th>
                     <th class="px-4 py-3">Médico</th>
                     <th class="px-4 py-3">Fecha Firma</th>
                     <th class="px-4 py-3 text-end">Acción</th>
@@ -58,35 +57,6 @@
                         <td class="px-4 py-3 font-bold text-brandPrimario">{{ $informe->paciente_nombre }}</td>
                         <td class="px-4 py-3 font-mono text-xs">{{ $informe->paciente_dni }}</td>
                         <td class="px-4 py-3">{{ $informe->tipoEstudio->nombre ?? 'N/A' }}</td>
-                        <td class="px-4 py-3">
-                            @if($informe->semaforo_salud)
-                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold border {{ $informe->semaforo_salud->badgeClasses() }}">
-                                    <span>{{ $informe->semaforo_salud->icono() }}</span>
-                                    <span>{{ $informe->semaforo_salud->label() }}</span>
-                                </span>
-                            @elseif($informe->semaforo_evolucion)
-                                @php
-                                    $clasesMap = [
-                                        'verde' => 'bg-emerald-100 text-emerald-800 border-emerald-300',
-                                        'amarillo' => 'bg-amber-100 text-amber-800 border-amber-300',
-                                        'naranja' => 'bg-orange-100 text-orange-800 border-orange-300',
-                                        'rojo' => 'bg-rose-100 text-rose-800 border-rose-300',
-                                    ];
-                                    $iconoMap = [
-                                        'verde' => '🟢',
-                                        'amarillo' => '🟡',
-                                        'naranja' => '🟠',
-                                        'rojo' => '🔴',
-                                    ];
-                                @endphp
-                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold border {{ $clasesMap[$informe->semaforo_evolucion] ?? 'bg-slate-100 text-slate-800' }}">
-                                    <span>{{ $iconoMap[$informe->semaforo_evolucion] ?? '🩺' }}</span>
-                                    <span>{{ ucfirst($informe->semaforo_evolucion) }}</span>
-                                </span>
-                            @else
-                                <span class="text-xs text-gray-400 italic">No especificado</span>
-                            @endif
-                        </td>
                         <td class="px-4 py-3">{{ $informe->medico->name ?? 'Sin asignar' }}</td>
                         <td class="px-4 py-3 text-xs text-gray-500">{{ $informe->firmado_at?->format('d/m/Y - H:i') ?? 'N/A' }}</td>
                         <td class="px-4 py-3 text-end space-x-1.5 whitespace-nowrap">

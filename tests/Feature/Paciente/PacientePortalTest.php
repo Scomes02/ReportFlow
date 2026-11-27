@@ -15,7 +15,7 @@ class PacientePortalTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_portal_del_paciente_muestra_informe_con_semaforo_e_historial(): void
+    public function test_portal_del_paciente_muestra_informe_oficial_y_descarga(): void
     {
         $medico = User::factory()->create(['role' => 'medico', 'name' => 'Dr. Fernando Rossi']);
         $tecnico = User::factory()->create(['role' => 'tecnico']);
@@ -44,13 +44,11 @@ class PacientePortalTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee('Informe de Diagnóstico Médico');
         $response->assertSee('Roberto Álvarez');
-        $response->assertSee('Semáforo del Proceso del Paciente');
-        $response->assertSee('Evolución Favorable / Normal');
         $response->assertSee('Dr. Fernando Rossi');
         $response->assertSee('Imprimir / Descargar PDF');
     }
 
-    public function test_call_center_muestra_columna_de_semaforo_y_boton_ver_imprimir(): void
+    public function test_call_center_no_muestra_semaforo_por_privacidad_clinica_y_muestra_boton_ver_imprimir(): void
     {
         $callcenterUser = User::factory()->create(['role' => 'callcenter']);
         $medico = User::factory()->create(['role' => 'medico']);
@@ -77,7 +75,7 @@ class PacientePortalTest extends TestCase
         $response = $this->actingAs($callcenterUser)->get(route('callcenter.informes'));
 
         $response->assertStatus(200);
-        $response->assertSee('Evolución (Semáforo)');
+        $response->assertDontSee('Evolución (Semáforo)');
         $response->assertSee('Ver / Imprimir');
         $response->assertSee(route('paciente.informe', $estudio->id));
     }
