@@ -9,7 +9,7 @@
 </head>
 <body class="h-full bg-gray-100 font-sans text-brandTexto">
     <div class="min-h-screen flex items-center justify-center p-4">
-        <div class="w-full max-w-md">
+        <div class="w-full max-w-md" style="max-width: 520px;">
             <!-- Logo -->
             <div class="text-center mb-8">
                 <img src="{{ asset('images/logo-hu-uso-diario.png') }}" alt="Hospital Universitario" class="h-14 mx-auto mb-4">
@@ -75,32 +75,32 @@
                 <!-- Credenciales de prueba -->
                 <div class="mt-6 pt-5 border-t border-gray-200">
                     <p class="text-xs text-gray-500 text-center mb-3">
-                        <i class="fas fa-key text-amber-500 mr-1"></i> Credenciales de prueba <span class="text-[10px] text-gray-400">(clic para autocompletar)</span>
+                        <i class="fas fa-key text-amber-500 mr-1"></i> Credenciales de prueba <span class="text-gray-400" style="font-size: 10px;">(clic para autocompletar)</span>
                     </p>
                     <div class="grid grid-cols-2 gap-2 text-xs">
                         <div onclick="document.querySelector('input[name=email]').value='tecnico.prueba@reportflow.local'; document.querySelector('input[name=password]').value='password';"
                              title="Clic para usar credenciales de Técnico"
                              class="bg-gray-50 hover:bg-blue-50/70 hover:border-brandPrimario/50 p-2.5 rounded-lg border border-gray-200 transition-all cursor-pointer select-none">
                             <span class="font-bold text-brandPrimario block text-xs">Técnico:</span>
-                            <span class="text-gray-600 text-[11px] font-mono block break-all leading-snug mt-0.5">tecnico.prueba@reportflow.local</span>
+                            <span class="text-gray-600 font-mono block" style="font-size: 11px; word-break: break-all; margin-top: 2px;">tecnico.prueba@reportflow.local</span>
                         </div>
                         <div onclick="document.querySelector('input[name=email]').value='medico@reportflow.local'; document.querySelector('input[name=password]').value='password';"
                              title="Clic para usar credenciales de Médico"
                              class="bg-gray-50 hover:bg-blue-50/70 hover:border-brandPrimario/50 p-2.5 rounded-lg border border-gray-200 transition-all cursor-pointer select-none">
                             <span class="font-bold text-brandPrimario block text-xs">Médico:</span>
-                            <span class="text-gray-600 text-[11px] font-mono block break-all leading-snug mt-0.5">medico@reportflow.local</span>
+                            <span class="text-gray-600 font-mono block" style="font-size: 11px; word-break: break-all; margin-top: 2px;">medico@reportflow.local</span>
                         </div>
                         <div onclick="document.querySelector('input[name=email]').value='productividad@reportflow.local'; document.querySelector('input[name=password]').value='password';"
                              title="Clic para usar credenciales de Productividad"
                              class="bg-gray-50 hover:bg-blue-50/70 hover:border-brandPrimario/50 p-2.5 rounded-lg border border-gray-200 transition-all cursor-pointer select-none">
                             <span class="font-bold text-brandPrimario block text-xs">Productividad:</span>
-                            <span class="text-gray-600 text-[11px] font-mono block break-all leading-snug mt-0.5">productividad@reportflow.local</span>
+                            <span class="text-gray-600 font-mono block" style="font-size: 11px; word-break: break-all; margin-top: 2px;">productividad@reportflow.local</span>
                         </div>
                         <div onclick="document.querySelector('input[name=email]').value='callcenter@reportflow.local'; document.querySelector('input[name=password]').value='password';"
                              title="Clic para usar credenciales de Call Center"
                              class="bg-gray-50 hover:bg-blue-50/70 hover:border-brandPrimario/50 p-2.5 rounded-lg border border-gray-200 transition-all cursor-pointer select-none">
                             <span class="font-bold text-brandPrimario block text-xs">Call Center:</span>
-                            <span class="text-gray-600 text-[11px] font-mono block break-all leading-snug mt-0.5">callcenter@reportflow.local</span>
+                            <span class="text-gray-600 font-mono block" style="font-size: 11px; word-break: break-all; margin-top: 2px;">callcenter@reportflow.local</span>
                         </div>
                         <div class="bg-gray-50 p-2 rounded-lg border border-gray-200 col-span-2 text-center text-xs text-gray-500">
                             Contraseña: <strong class="text-gray-700 font-mono">password</strong>
