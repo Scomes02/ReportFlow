@@ -112,9 +112,9 @@ if (app()->environment('local')) {
 
     Route::get('/dev-login-rrhh', function () {
         $user = \App\Models\User::firstOrCreate(
-            ['email' => 'rrhh@reportflow.local'],
+            ['email' => 'productividad@reportflow.local'],
             [
-                'name' => 'RRHH - Administración',
+                'name' => 'Productividad - Administración',
                 'password' => bcrypt('password'),
                 'role' => 'rrhh',
             ]

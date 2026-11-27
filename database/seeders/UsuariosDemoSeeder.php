@@ -42,7 +42,7 @@ class UsuariosDemoSeeder extends Seeder
         // Estos dos antes solo existían si visitabas /dev-login-rrhh o
         // /dev-login-callcenter al menos una vez. Ahora quedan en el seeder.
         $administrativos = [
-            ['name' => 'RRHH - Administración', 'email' => 'rrhh@reportflow.local', 'role' => 'rrhh'],
+            ['name' => 'Productividad - Administración', 'email' => 'productividad@reportflow.local', 'role' => 'rrhh'],
             ['name' => 'Call Center - Recepción', 'email' => 'callcenter@reportflow.local', 'role' => 'callcenter'],
         ];
 

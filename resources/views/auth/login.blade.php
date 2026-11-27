@@ -73,27 +73,37 @@
                 </form>
 
                 <!-- Credenciales de prueba -->
-                <div class="mt-6 pt-6 border-t border-gray-200">
-                    <p class="text-xs text-gray-500 text-center mb-3">🔑 Credenciales de prueba</p>
+                <div class="mt-6 pt-5 border-t border-gray-200">
+                    <p class="text-xs text-gray-500 text-center mb-3">
+                        <i class="fas fa-key text-amber-500 mr-1"></i> Credenciales de prueba <span class="text-[10px] text-gray-400">(clic para autocompletar)</span>
+                    </p>
                     <div class="grid grid-cols-2 gap-2 text-xs">
-                        <div class="bg-gray-50 p-2 rounded border border-gray-200">
-                            <span class="font-bold text-brandPrimario">Técnico:</span><br>
-                            <span class="text-gray-600">tecnico.prueba@reportflow.local</span>
+                        <div onclick="document.querySelector('input[name=email]').value='tecnico.prueba@reportflow.local'; document.querySelector('input[name=password]').value='password';"
+                             title="Clic para usar credenciales de Técnico"
+                             class="bg-gray-50 hover:bg-blue-50/70 hover:border-brandPrimario/50 p-2.5 rounded-lg border border-gray-200 transition-all cursor-pointer select-none">
+                            <span class="font-bold text-brandPrimario block text-xs">Técnico:</span>
+                            <span class="text-gray-600 text-[11px] font-mono block break-all leading-snug mt-0.5">tecnico.prueba@reportflow.local</span>
                         </div>
-                        <div class="bg-gray-50 p-2 rounded border border-gray-200">
-                            <span class="font-bold text-brandPrimario">Médico:</span><br>
-                            <span class="text-gray-600">medico@reportflow.local</span>
+                        <div onclick="document.querySelector('input[name=email]').value='medico@reportflow.local'; document.querySelector('input[name=password]').value='password';"
+                             title="Clic para usar credenciales de Médico"
+                             class="bg-gray-50 hover:bg-blue-50/70 hover:border-brandPrimario/50 p-2.5 rounded-lg border border-gray-200 transition-all cursor-pointer select-none">
+                            <span class="font-bold text-brandPrimario block text-xs">Médico:</span>
+                            <span class="text-gray-600 text-[11px] font-mono block break-all leading-snug mt-0.5">medico@reportflow.local</span>
                         </div>
-                        <div class="bg-gray-50 p-2 rounded border border-gray-200">
-                            <span class="font-bold text-brandPrimario">RRHH:</span><br>
-                            <span class="text-gray-600">rrhh@reportflow.local</span>
+                        <div onclick="document.querySelector('input[name=email]').value='productividad@reportflow.local'; document.querySelector('input[name=password]').value='password';"
+                             title="Clic para usar credenciales de Productividad"
+                             class="bg-gray-50 hover:bg-blue-50/70 hover:border-brandPrimario/50 p-2.5 rounded-lg border border-gray-200 transition-all cursor-pointer select-none">
+                            <span class="font-bold text-brandPrimario block text-xs">Productividad:</span>
+                            <span class="text-gray-600 text-[11px] font-mono block break-all leading-snug mt-0.5">productividad@reportflow.local</span>
                         </div>
-                        <div class="bg-gray-50 p-2 rounded border border-gray-200">
-                            <span class="font-bold text-brandPrimario">Call Center:</span><br>
-                            <span class="text-gray-600">callcenter@reportflow.local</span>
+                        <div onclick="document.querySelector('input[name=email]').value='callcenter@reportflow.local'; document.querySelector('input[name=password]').value='password';"
+                             title="Clic para usar credenciales de Call Center"
+                             class="bg-gray-50 hover:bg-blue-50/70 hover:border-brandPrimario/50 p-2.5 rounded-lg border border-gray-200 transition-all cursor-pointer select-none">
+                            <span class="font-bold text-brandPrimario block text-xs">Call Center:</span>
+                            <span class="text-gray-600 text-[11px] font-mono block break-all leading-snug mt-0.5">callcenter@reportflow.local</span>
                         </div>
-                        <div class="bg-gray-50 p-2 rounded border border-gray-200 col-span-2 text-center">
-                            <span class="text-gray-500">Contraseña: <strong>password</strong></span>
+                        <div class="bg-gray-50 p-2 rounded-lg border border-gray-200 col-span-2 text-center text-xs text-gray-500">
+                            Contraseña: <strong class="text-gray-700 font-mono">password</strong>
                         </div>
                     </div>
                 </div>

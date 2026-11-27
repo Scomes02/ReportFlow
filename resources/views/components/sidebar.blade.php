@@ -33,7 +33,7 @@
             <a href="{{ route('rrhh.dashboard') }}"
                 class="flex items-center px-3 py-2 rounded-lg text-sm font-bold {{ request()->routeIs('rrhh.dashboard') ? 'text-brandPrimario bg-blue-50' : 'text-gray-600 hover:bg-gray-50' }}">
                 <i class="fas fa-chart-pie w-5 text-center mr-2"></i>
-                Dashboard RRHH
+                Dashboard Productividad
             </a>
             <a href="{{ route('rrhh.especialidades') }}"
                 class="flex items-center px-3 py-2 rounded-lg text-sm font-bold {{ request()->routeIs('rrhh.especialidades') || request()->routeIs('rrhh.medicos*') ? 'text-brandPrimario bg-blue-50' : 'text-gray-600 hover:bg-gray-50' }}">

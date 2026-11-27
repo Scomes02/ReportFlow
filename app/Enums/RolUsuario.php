@@ -21,7 +21,7 @@ enum RolUsuario: string
             self::Admin => 'Administrador',
             self::Tecnico => 'Técnico',
             self::Medico => 'Médico',
-            self::Rrhh => 'RRHH / Administración',
+            self::Rrhh => 'Productividad',
             self::CallCenter => 'Call Center',
         };
     }

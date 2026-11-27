@@ -46,7 +46,7 @@ class EnsureUserHasRole
         return match ($role) {
             'tecnico' => 'Técnico',
             'medico' => 'Médico',
-            'rrhh' => 'RRHH / Administración',
+            'rrhh' => 'Productividad',
             'callcenter' => 'Call Center',
             default => 'Desconocido',
         };

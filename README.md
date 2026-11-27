@@ -285,7 +285,7 @@ El seeder del sistema genera automáticamente usuarios con la contraseña común
 |---|---|---|
 | **Técnico** | `tecnico.prueba@reportflow.local` | Carga de placas, vinculación PACS y estudios externos |
 | **Médico** | `medico@reportflow.local` | Diagnóstico con visor dual 1x2, dictado por voz e informe dual |
-| **RRHH / Auditoría** | `rrhh@reportflow.local` | Panel de métricas y archivo general de informes |
+| **Productividad / Auditoría** | `productividad@reportflow.local` | Panel de métricas y archivo general de informes |
 | **Call Center** | `callcenter@reportflow.local` | Estado de trámite y aviso de retiro sin acceso clínico |
 
 > **Acceso al Portal del Paciente:** Cualquier estudio firmado puede ser consultado en `/portal/paciente/estudio/{id}` (por ejemplo, `/portal/paciente/estudio/1`).
