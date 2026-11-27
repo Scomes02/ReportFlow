@@ -14,6 +14,7 @@
 [![Alpine.js](https://img.shields.io/badge/Alpine.js-3-8BC0D0?style=flat-square&logo=alpine.js&logoColor=black)](https://alpinejs.dev)
 [![DICOM](https://img.shields.io/badge/DICOM-dcm4chee--arc--light-4F46E5?style=flat-square)](https://www.dcm4che.org/)
 [![AI Whisper](https://img.shields.io/badge/AI-Whisper%20Local%20(On--Premise)-10B981?style=flat-square)](https://openai.com/research/whisper)
+[![2FA](https://img.shields.io/badge/Seguridad-Doble%20Factor%20(2FA)-003764?style=flat-square)](https://github.com/Scomes02/ReportFlow)
 [![License](https://img.shields.io/badge/Uso-Académico%2FInstitucional-lightgrey?style=flat-square)]()
 
 </div>
@@ -28,8 +29,10 @@ El sistema conecta de punta a punta a los diferentes actores del ecosistema hosp
 1. **El Técnico en Radiología / Diagnóstico**, que carga placas, vincula estudios a servidores PACS DICOM y digitaliza antecedentes externos.
 2. **El Médico Especialista**, que cuenta con una estación de diagnóstico equipada con **Visor Comparativo Dual 1x2**, visualizador de **PDFs interactivo**, correlación de antecedentes longitudinales y **dictado médico por voz con IA on-premise**.
 3. **El Paciente**, que accede a un **Portal de Salud** con un informe explicativo comprensible acompañado de semáforos evolutivos.
-4. **Recursos Humanos y Auditoría**, que monitorean la productividad y volumen por especialidad sin comprometer la privacidad médica.
-5. **Call Center**, que gestiona la comunicación y retiro de informes de forma segura.
+4. **Productividad y Auditoría**, que monitorean el rendimiento y volumen de estudios por especialidad sin comprometer la privacidad médica.
+5. **Call Center**, que gestiona la comunicación y aviso de retiro de informes manteniendo estricto aislamiento de los diagnósticos clínicos.
+
+Todo el ecosistema está resguardado por una capa de **Doble Factor de Autenticación (2FA)** por correo electrónico, adaptada con modo de demostración ágil para evaluaciones y modo hospitalario estricto para producción.
 
 ---
 
@@ -94,17 +97,25 @@ En la práctica médica tradicional:
 
 ---
 
-### 📊 Módulo RRHH / Auditoría
+### 📊 Módulo Productividad / Auditoría
 - **Tablero de control:** Indicadores de volumen total por estado (*Nuevo*, *Informado*, *Rechazado*).
-- **Auditoría médica por especialidad y profesional:** Métricas sobre cantidad de informes realizados en el período.
+- **Métricas de productividad médica:** Seguimiento de volumen de informes emitidos por especialista y especialidad diagnóstica.
 - **Archivo General Histórico:** Búsqueda y navegación de informes firmados organizados por mes y año.
 
 ---
 
 ### 📞 Módulo Call Center
-- **Búsqueda por DNI:** Consulta del estado del trámite en tiempo real para informar al paciente sobre la disponibilidad de su estudio.
-- **Aislamiento de privacidad:** Acceso al estado de entrega y datos de contacto **sin visibilidad sobre los informes clínicos confidenciales**.
-- **Registro de aviso:** Confirmación y registro de notificación enviada al paciente.
+- **Búsqueda por DNI:** Consulta del estado de trámite en tiempo real para informar al paciente sobre la disponibilidad de su estudio.
+- **Aislamiento y confidencialidad clínica:** Acceso limitado al estado de entrega y datos de contacto, **sin acceso a los informes médicos ni al semáforo de evolución de salud**, garantizando el secreto médico profesional.
+- **Gestión de aviso:** Envío del informe al correo electrónico del paciente con un solo clic y registro de fecha/hora de la notificación.
+
+---
+
+### 🛡️ Seguridad y Doble Factor de Autenticación (2FA)
+- **Verificación en dos pasos:** Al ingresar usuario y contraseña válidos, el sistema exige un código temporal de 6 dígitos (OTP) enviado al correo electrónico institucional del usuario.
+- **Validez temporal:** Códigos protegidos con vencimiento automático de 10 minutos.
+- **Modo Demostración Inteligente (`!app()->isProduction()`):** En entornos locales o de evaluación académica, la pantalla `/login/2fa` muestra una tarjeta provisoria con el código generado y soporte para autocompletar e ingresar en un solo clic.
+- **Modo Producción Hospitalario:** En servidores de producción (`APP_ENV=production`), la tarjeta de ayuda se oculta automáticamente y el código viaja de forma estricta y exclusiva a la casilla real del profesional.
 
 ---
 
@@ -130,9 +141,10 @@ ReportFlow/
 ├── app/
 │   ├── Enums/                     # RolUsuario, EstadoEstudio, SemaforoSalud
 │   ├── Http/
-│   │   ├── Controllers/           # Auth, Tecnico, Medico, Paciente, Rrhh, CallCenter
+│   │   ├── Controllers/           # Auth (Login + 2FA), Tecnico, Medico, Paciente, Rrhh, CallCenter
 │   │   ├── Middleware/            # EnsureUserHasRole
 │   │   └── Requests/              # Validaciones tipadas (CrearEstudioRequest, etc.)
+│   ├── Mail/                      # CodigoDobleFactor (2FA), AvisoInformeListo
 │   ├── Models/                    # Estudio, ArchivoEstudio, Especialidad, TipoEstudio, User, Adenda
 │   └── Services/                  # Lógica de Negocio Especializada
 │       ├── AlmacenamientoEstudioService.php    # Transacciones y subida de archivos/PDFs
@@ -142,22 +154,24 @@ ReportFlow/
 │       └── EnsambladoClinicoService.php        # Mosaico clínico y estado basal
 │
 ├── database/
-│   ├── migrations/                # Esquema de base de datos evolutivo
+│   ├── migrations/                # Esquema de base de datos evolutivo (incluye 2FA)
 │   └── seeders/                   # Datos clínicos de prueba realistas
 │
 ├── recursos/views/
+│   ├── auth/                      # Login con autocompletar y Verificación 2FA
+│   ├── emails/                    # Plantillas de correo institucional (2FA y Aviso)
 │   ├── layouts/                   # Master layout con branding institucional
 │   ├── medico/                    # Visor dual, editor de informe, línea de tiempo, worklist
 │   ├── tecnico/                   # Formulario con soporte PACS y estudios externos
 │   ├── paciente/                  # Portal de salud con semáforo para el paciente
-│   ├── rrhh/                      # Dashboards y archivo general
+│   ├── rrhh/                      # Dashboards de productividad y archivo general
 │   └── callcenter/                # Consulta de estado de entrega de estudios
 │
 ├── rutas/
-│   ├── web.php                    # Autenticación, portal paciente y dev-logins
+│   ├── web.php                    # Autenticación, flujo 2FA, portal paciente y dev-logins
 │   ├── medico.php                 # Visor, dictado por voz, firma, adendas y externos
 │   ├── tecnico.php                # Carga y worklist de técnicos
-│   ├── rrhh.php                   # Auditoría y paneles
+│   ├── rrhh.php                   # Auditoría y paneles de productividad
 │   └── callcenter.php             # Avisos y seguimiento
 │
 └── servicios/
@@ -202,7 +216,7 @@ flowchart TD
     end
 
     subgraph DISTRIBUCION["4. Gestión, Auditoría y Entrega"]
-        DUAL --> RRHH[RRHH: Auditoría y Métricas]
+        DUAL --> PROD[Productividad: Auditoría y Métricas]
         DUAL --> CC[Call Center: Aviso de Retiro]
         DUAL --> PORTAL[Portal del Paciente:\nConsulta, Semáforo y Descarga PDF]
     end
@@ -287,6 +301,8 @@ El seeder del sistema genera automáticamente usuarios con la contraseña común
 | **Médico** | `medico@reportflow.local` | Diagnóstico con visor dual 1x2, dictado por voz e informe dual |
 | **Productividad / Auditoría** | `productividad@reportflow.local` | Panel de métricas y archivo general de informes |
 | **Call Center** | `callcenter@reportflow.local` | Estado de trámite y aviso de retiro sin acceso clínico |
+
+> **🔐 Seguridad y Doble Factor (2FA):** Al iniciar sesión con cualquier usuario, el sistema solicita un código de verificación temporal de 6 dígitos. En modo local o de evaluación, la pantalla incluye un asistente interactivo que autocompleta el código con un solo clic para agilizar las pruebas. En servidores de producción, el código viaja estrictamente a la casilla de correo del usuario.
 
 > **Acceso al Portal del Paciente:** Cualquier estudio firmado puede ser consultado en `/portal/paciente/estudio/{id}` (por ejemplo, `/portal/paciente/estudio/1`).
 
