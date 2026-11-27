@@ -12,6 +12,12 @@ Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+// Doble Factor de Autenticación (2FA)
+Route::get('/login/2fa', [AuthController::class, 'show2FA'])->name('2fa.challenge');
+Route::post('/login/2fa', [AuthController::class, 'verify2FA'])->name('2fa.verify');
+Route::post('/login/2fa/reenviar', [AuthController::class, 'resend2FA'])->name('2fa.resend');
+Route::post('/login/2fa/cancelar', [AuthController::class, 'cancel2FA'])->name('2fa.cancel');
+
 /*
 |--------------------------------------------------------------------------
 | Ruta pública raíz
