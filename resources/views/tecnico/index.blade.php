@@ -3,7 +3,7 @@
 @section('titulo', 'Mis Estudios Cargados')
 
 @section('contenido')
-<div x-data="{ modalAbierto: false }">
+<div x-data="{ modalAbierto: @js($errors->any()) }">
 
     <div class="flex justify-between items-center mb-6">
         <p class="text-sm text-gray-500">Historial de estudios subidos y derivados a especialidad.</p>
@@ -83,42 +83,53 @@
 
             <div class="bg-brandPrimario text-white p-4 flex justify-between items-center">
                 <h3 class="font-bold">Nuevo Estudio</h3>
-                <button @click="modalAbierto = false" class="text-white/70 hover:text-white">✕</button>
+                <button @click="modalAbierto = false" aria-label="Cerrar" class="text-white/70 hover:text-white">✕</button>
             </div>
+
+            @if ($errors->any())
+                <div class="mx-6 mt-4 bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg p-3">
+                    <p class="font-bold mb-1">Revisá los datos del formulario:</p>
+                    <ul class="list-disc list-inside space-y-0.5">
+                        @foreach ($errors->all() as $mensaje)
+                            <li>{{ $mensaje }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
 
             <form method="POST" action="{{ route('tecnico.estudios.store') }}"
                   enctype="multipart/form-data" class="p-6 space-y-4"
-                  x-data="{ origen: 'archivo', studyUid: '' }">
+                  x-data="{ origen: @js(old('study_instance_uid') ? 'pacs' : 'archivo'), studyUid: @js(old('study_instance_uid', '')) }">
                 @csrf
 
                 <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-1">Nombre del Paciente</label>
-                    <input type="text" name="paciente_nombre" required
+                    <label for="nuevo-estudio-paciente-nombre" class="block text-xs font-bold text-gray-600 mb-1">Nombre del Paciente</label>
+                    <input id="nuevo-estudio-paciente-nombre" type="text" name="paciente_nombre" value="{{ old('paciente_nombre') }}" required
                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-brandSecundario focus:outline-none">
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-bold text-gray-600 mb-1">DNI</label>
-                        <input type="text" name="paciente_dni" required
+                        <label for="nuevo-estudio-dni" class="block text-xs font-bold text-gray-600 mb-1">DNI</label>
+                        <input id="nuevo-estudio-dni" type="text" name="paciente_dni" value="{{ old('paciente_dni') }}" required
                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-brandSecundario focus:outline-none">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-gray-600 mb-1">Edad</label>
-                        <input type="number" name="paciente_edad" required
+                        <label for="nuevo-estudio-edad" class="block text-xs font-bold text-gray-600 mb-1">Edad</label>
+                        <input id="nuevo-estudio-edad" type="number" name="paciente_edad" value="{{ old('paciente_edad') }}" required
                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-brandSecundario focus:outline-none">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-bold text-gray-600 mb-1">Teléfono (opcional)</label>
-                        <input type="text" name="paciente_telefono" placeholder="261 555-1234"
+                        <label for="nuevo-estudio-telefono" class="block text-xs font-bold text-gray-600 mb-1">Teléfono (opcional)</label>
+                        <input id="nuevo-estudio-telefono" type="text" name="paciente_telefono" value="{{ old('paciente_telefono') }}" placeholder="261 555-1234"
                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-brandSecundario focus:outline-none">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-gray-600 mb-1">Email (opcional)</label>
-                        <input type="email" name="paciente_email" placeholder="paciente@email.com"
+                        <label for="nuevo-estudio-email" class="block text-xs font-bold text-gray-600 mb-1">Email (opcional)</label>
+                        <input id="nuevo-estudio-email" type="email" name="paciente_email" value="{{ old('paciente_email') }}" placeholder="paciente@email.com"
                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-brandSecundario focus:outline-none">
                     </div>
                 </div>
@@ -127,32 +138,32 @@
                 </p>
 
                 <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-1">Especialidad</label>
-                    <select name="especialidad_id" required
+                    <label for="nuevo-estudio-especialidad" class="block text-xs font-bold text-gray-600 mb-1">Especialidad</label>
+                    <select id="nuevo-estudio-especialidad" name="especialidad_id" required
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-brandSecundario focus:outline-none">
                         <option value="">Seleccionar...</option>
                         @foreach ($especialidades as $especialidad)
-                            <option value="{{ $especialidad->id }}">{{ $especialidad->nombre }}</option>
+                            <option value="{{ $especialidad->id }}" @selected(old('especialidad_id') == $especialidad->id)>{{ $especialidad->nombre }}</option>
                         @endforeach
                     </select>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-1">Tipo de Estudio</label>
-                    <select name="tipo_estudio_id" required
+                    <label for="nuevo-estudio-tipo-estudio" class="block text-xs font-bold text-gray-600 mb-1">Tipo de Estudio</label>
+                    <select id="nuevo-estudio-tipo-estudio" name="tipo_estudio_id" required
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-brandSecundario focus:outline-none">
                         <option value="">Seleccionar...</option>
                         @foreach ($especialidades as $especialidad)
                             @foreach ($especialidad->tiposEstudio as $tipo)
-                                <option value="{{ $tipo->id }}">{{ $tipo->nombre }} ({{ $especialidad->nombre }})</option>
+                                <option value="{{ $tipo->id }}" @selected(old('tipo_estudio_id') == $tipo->id)>{{ $tipo->nombre }} ({{ $especialidad->nombre }})</option>
                             @endforeach
                         @endforeach
                     </select>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-1">Fecha del Estudio</label>
-                    <input type="datetime-local" name="fecha_estudio" required
+                    <label for="nuevo-estudio-fecha" class="block text-xs font-bold text-gray-600 mb-1">Fecha del Estudio</label>
+                    <input id="nuevo-estudio-fecha" type="datetime-local" name="fecha_estudio" value="{{ old('fecha_estudio') }}" required
                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-brandSecundario focus:outline-none">
                 </div>
 
@@ -182,38 +193,38 @@
 
                         <div class="grid grid-cols-3 gap-2">
                             <div class="col-span-2">
-                                <label class="block text-[11px] font-bold text-slate-700 mb-1">StudyInstanceUID</label>
-                                <input type="text" name="study_instance_uid" x-model="studyUid"
+                                <label for="nuevo-estudio-study-instance-uid" class="block text-[11px] font-bold text-slate-700 mb-1">StudyInstanceUID</label>
+                                <input id="nuevo-estudio-study-instance-uid" type="text" name="study_instance_uid" x-model="studyUid" value="{{ old('study_instance_uid') }}"
                                        placeholder="1.2.840.113619.2.55.3..."
                                        class="w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs font-mono focus:ring-1 focus:ring-indigo-500 focus:outline-none">
                             </div>
                             <div>
-                                <label class="block text-[11px] font-bold text-slate-700 mb-1">Modalidad</label>
-                                <select name="modalidad" class="w-full border border-slate-300 rounded-lg px-2 py-1.5 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none">
-                                    <option value="CR">CR (Radiografía)</option>
-                                    <option value="CT">CT (Tomografía)</option>
-                                    <option value="MR">MR (Resonancia)</option>
-                                    <option value="DX">DX (Rx Digital)</option>
-                                    <option value="US">US (Ecografía)</option>
-                                    <option value="NM">NM (Med. Nuclear)</option>
-                                    <option value="XA">XA (Angiografía)</option>
+                                <label for="nuevo-estudio-modalidad" class="block text-[11px] font-bold text-slate-700 mb-1">Modalidad</label>
+                                <select id="nuevo-estudio-modalidad" name="modalidad" class="w-full border border-slate-300 rounded-lg px-2 py-1.5 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none">
+                                    <option value="CR" @selected(old('modalidad', 'CR') === 'CR')>CR (Radiografía)</option>
+                                    <option value="CT" @selected(old('modalidad', 'CR') === 'CT')>CT (Tomografía)</option>
+                                    <option value="MR" @selected(old('modalidad', 'CR') === 'MR')>MR (Resonancia)</option>
+                                    <option value="DX" @selected(old('modalidad', 'CR') === 'DX')>DX (Rx Digital)</option>
+                                    <option value="US" @selected(old('modalidad', 'CR') === 'US')>US (Ecografía)</option>
+                                    <option value="NM" @selected(old('modalidad', 'CR') === 'NM')>NM (Med. Nuclear)</option>
+                                    <option value="XA" @selected(old('modalidad', 'CR') === 'XA')>XA (Angiografía)</option>
                                 </select>
                             </div>
                         </div>
 
                         <div>
-                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Accession Number (Opcional)</label>
-                            <input type="text" name="accession_number" placeholder="ACC-2026-001"
+                            <label for="nuevo-estudio-accession-number" class="block text-[11px] font-bold text-slate-700 mb-1">Accession Number (Opcional)</label>
+                            <input id="nuevo-estudio-accession-number" type="text" name="accession_number" value="{{ old('accession_number') }}" placeholder="ACC-2026-001"
                                    class="w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs font-mono focus:ring-1 focus:ring-indigo-500 focus:outline-none">
                         </div>
                     </div>
 
                     {{-- Carga de archivos --}}
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">
+                        <label for="nuevo-estudio-archivos" class="block text-xs font-bold text-slate-700 mb-1">
                             Archivos adjuntos (PDF, JPG, PNG, DCM hasta 50MB c/u)
                         </label>
-                        <input type="file" name="archivos[]" multiple accept=".pdf,.jpg,.jpeg,.png,.dcm"
+                        <input id="nuevo-estudio-archivos" type="file" name="archivos[]" multiple accept=".pdf,.jpg,.jpeg,.png,.dcm"
                                :required="origen === 'archivo' && !studyUid"
                                class="w-full border-2 border-dashed border-gray-300 rounded-lg p-3 text-xs text-gray-500 bg-white">
                         <p class="text-[10px] text-slate-400 mt-1" x-show="origen === 'pacs'">
@@ -221,20 +232,25 @@
                         </p>
                     </div>
 
-                    @error('archivos')
-                        <p class="text-xs text-red-600">{{ $message }}</p>
-                    @enderror
+                    @foreach ($errors->get('archivos') as $mensaje)
+                        <p class="text-xs text-red-600">{{ $mensaje }}</p>
+                    @endforeach
+                    @foreach ($errors->get('archivos.*') as $mensajes)
+                        @foreach ($mensajes as $mensaje)
+                            <p class="text-xs text-red-600">{{ $mensaje }}</p>
+                        @endforeach
+                    @endforeach
                 </div>
 
                 {{-- Estudio Externo Aportado por el Paciente --}}
-                <div class="border border-purple-200 bg-purple-50/50 rounded-xl p-3 space-y-2" x-data="{ esExterno: false }">
-                    <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" name="es_externo" value="1" x-model="esExterno" class="rounded text-purple-600 focus:ring-purple-500">
+                <div class="border border-purple-200 bg-purple-50/50 rounded-xl p-3 space-y-2" x-data="{ esExterno: @js((bool) old('es_externo')) }">
+                    <label for="nuevo-estudio-es-externo" class="flex items-center gap-2 cursor-pointer">
+                        <input id="nuevo-estudio-es-externo" type="checkbox" name="es_externo" value="1" x-model="esExterno" @checked(old('es_externo')) class="rounded text-purple-600 focus:ring-purple-500">
                         <span class="text-xs font-bold text-purple-900">¿Es un estudio previo aportado por el paciente?</span>
                     </label>
                     <div x-show="esExterno" x-cloak class="space-y-1.5 pt-1">
-                        <label class="block text-[11px] font-bold text-purple-800">Institución / Centro médico de origen</label>
-                        <input type="text" name="institucion_origen" placeholder="Ej: Sanatorio Allende, Hospital Privado, Clínica Vélez..."
+                        <label for="nuevo-estudio-institucion-origen" class="block text-[11px] font-bold text-purple-800">Institución / Centro médico de origen</label>
+                        <input id="nuevo-estudio-institucion-origen" type="text" name="institucion_origen" value="{{ old('institucion_origen') }}" placeholder="Ej: Sanatorio Allende, Hospital Privado, Clínica Vélez..."
                                class="w-full border border-purple-300 rounded-lg px-2.5 py-1.5 text-xs bg-white focus:ring-1 focus:ring-purple-500 focus:outline-none">
                         <p class="text-[10px] text-purple-700">Se registrará como antecedente histórico en la Línea de Tiempo del paciente para que el médico pueda compararlo directamente.</p>
                     </div>
